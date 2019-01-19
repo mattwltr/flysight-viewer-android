@@ -1,0 +1,9 @@
+*.iml
+*.pro
+.gradle
+.idea
+build
+gradle
+resources/logs
+app/src/main/java/matt/wltr/labs/flysightviewer/ui/logview/SciChartLicenceLoader.java
+
