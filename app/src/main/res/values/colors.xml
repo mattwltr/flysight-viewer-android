@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- common -->
+    <color name="primary">#2B2B2B</color>
+    <color name="primary_dark">#263238</color>
+    <color name="accent">#AECD2F</color>
+    <color name="background">#1C1C1E</color>
+    <color name="text_highlight">#FFFFFF</color>
+
+    <!-- line charts -->
+    <color name="main_chart_x_axis">#FFFFFF</color>
+    <color name="main_chart_x_axis_tooltip_background">#1C1C1E</color>
+
+    <color name="main_chart_elevation">#CCCCCC</color>
+    <color name="main_chart_horizontal_speed">#FF0000</color>
+    <color name="main_chart_vertical_speed">#00FF00</color>
+    <color name="main_chart_total_speed">#0000FF</color>
+    <color name="main_chart_glide_ratio">#008080</color>
+    <color name="main_chart_course">#00FFFF</color>
+
+    <color name="main_chart_major_tick">#999999</color>
+    <color name="main_chart_minor_tick">#313337</color>
+
+    <color name="top_view_chart">#AADAFF</color>
+
+</resources>

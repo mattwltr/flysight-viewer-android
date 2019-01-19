@@ -1,0 +1,29 @@
+<resources>
+    <!-- common -->
+    <string name="app_name">FlySight Viewer</string>
+    <string name="title_with_file_name">FlySight Viewer: %s</string>
+    <string name="main_menu_choose_file">Choose file</string>
+    <string name="main_menu_zoom">Zoom out</string>
+    <string name="main_menu_chart_mode">Mode</string>
+    <string name="main_menu_skydive">Skydive</string>
+
+    <!-- data -->
+    <string name="elevation">Elevation</string>
+    <string name="horizontal_speed">Horizontal Speed</string>
+    <string name="vertical_speed">Vertical Speed</string>
+    <string name="total_speed">Total Speed</string>
+    <string name="glide_ratio">Glide Ratio</string>
+    <string name="heading">Heading</string>
+    <string name="dive_angle">Dive Angle</string>
+    <string name="duration">Duration</string>
+    <string name="distance">Distance</string>
+
+    <!-- units -->
+    <string name="meter">m</string>
+    <string name="meter_value">%s m</string>
+    <string name="kilometer_per_hour">km/h</string>
+    <string name="degree">°</string>
+    <string name="degree_value">%s°</string>
+    <string name="second_value">%s s</string>
+
+</resources>

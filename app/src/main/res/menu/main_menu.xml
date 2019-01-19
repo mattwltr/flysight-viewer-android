@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/main_menu_zoom_out"
+        android:icon="@drawable/ic_extend"
+        android:title="@string/main_menu_zoom"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/main_menu_chart_mode"
+        android:icon="@drawable/ic_unlock"
+        android:title="@string/main_menu_chart_mode"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/main_menu_skydive"
+        android:icon="@drawable/ic_skydive"
+        android:title="@string/main_menu_skydive"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/main_menu_choose_file"
+        android:icon="@drawable/ic_file"
+        android:title="@string/main_menu_choose_file"
+        app:showAsAction="ifRoom" />
+
+</menu>

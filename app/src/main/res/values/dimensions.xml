@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="top_view_chart_size">140dp</dimen>
+
+    <!-- Icon Value Group -->
+    <dimen name="icon_value_text_padding">15dp</dimen>
+    <dimen name="icon_value_label_font_size">10sp</dimen>
+    <dimen name="icon_value_value_font_size">12sp</dimen>
+
+</resources>
