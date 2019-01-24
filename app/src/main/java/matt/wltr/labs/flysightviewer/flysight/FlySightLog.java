@@ -1,5 +1,7 @@
 package matt.wltr.labs.flysightviewer.flysight;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Date;
@@ -31,7 +33,7 @@ public class FlySightLog implements Serializable {
 
     private FlySightRecord opening;
 
-    public FlySightLog(Map<Date, FlySightRecord> records) {
+    public FlySightLog(@NonNull Map<Date, FlySightRecord> records) {
         this.records = records;
         defineExtrema();
         defineExitAndOpening();

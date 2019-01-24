@@ -10,6 +10,7 @@ import java.text.NumberFormat;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import labs.wltr.matt.flysightviewer.R;
+import matt.wltr.labs.flysightviewer.ui.LocalizedFormatBuilder;
 
 public class DistanceView extends LinearLayout {
 
@@ -24,7 +25,7 @@ public class DistanceView extends LinearLayout {
 
     public DistanceView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        inflate(context, R.layout.fragment_distance, this);
+        inflate(context, R.layout.view_distance, this);
         ButterKnife.bind(this);
         valueFormatter = LocalizedFormatBuilder.numberFormat(context);
         valueFormatter.setMinimumFractionDigits(0);

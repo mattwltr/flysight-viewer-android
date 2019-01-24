@@ -1,8 +1,10 @@
 package matt.wltr.labs.flysightviewer.ui.logview.linechartview;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.MenuItem;
@@ -22,6 +24,7 @@ import com.scichart.core.framework.UpdateSuspender;
 import com.scichart.data.model.DateRange;
 import com.scichart.data.model.DoubleRange;
 import com.scichart.data.model.IRange;
+import com.scichart.drawing.canvas.RenderSurface;
 import com.scichart.drawing.common.FontStyle;
 import com.scichart.extensions.builders.SciChartBuilder;
 
@@ -38,6 +41,7 @@ import matt.wltr.labs.flysightviewer.flysight.FlySightLog;
 import matt.wltr.labs.flysightviewer.flysight.FlySightRecord;
 import matt.wltr.labs.flysightviewer.flysight.MinMax;
 import matt.wltr.labs.flysightviewer.flysight.Unit;
+import matt.wltr.labs.flysightviewer.ui.logview.SciChartLicenceLoader;
 
 public class LineChartView extends SciChartSurface {
 
@@ -80,6 +84,7 @@ public class LineChartView extends SciChartSurface {
 
     public LineChartView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
+        setRenderSurface(new RenderSurface(context.getApplicationContext())); // avoid black flickering on initial draw
     }
 
     public void initialize(@NonNull FlySightLog flySightLog) {

@@ -23,16 +23,4 @@
         android:visible="false"
         app:showAsAction="ifRoom" />
 
-    <item
-        android:id="@+id/main_menu_choose_file"
-        android:icon="@drawable/ic_file"
-        android:title="@string/main_menu_choose_file"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/main_menu_choose_folder"
-        android:icon="@drawable/ic_folder"
-        android:title="@string/main_menu_choose_folder"
-        app:showAsAction="ifRoom" />
-
 </menu>

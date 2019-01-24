@@ -14,6 +14,7 @@ import java.text.NumberFormat;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import labs.wltr.matt.flysightviewer.R;
+import matt.wltr.labs.flysightviewer.ui.LocalizedFormatBuilder;
 
 public class HeadingView extends LinearLayout {
 
@@ -27,7 +28,7 @@ public class HeadingView extends LinearLayout {
 
     public HeadingView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        inflate(getContext(), R.layout.fragment_heading, this);
+        inflate(getContext(), R.layout.view_heading, this);
         ButterKnife.bind(this);
         valueFormatter = LocalizedFormatBuilder.numberFormat(context);
         valueFormatter.setMinimumFractionDigits(0);

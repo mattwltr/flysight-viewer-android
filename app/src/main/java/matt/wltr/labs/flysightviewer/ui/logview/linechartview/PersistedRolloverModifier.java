@@ -10,4 +10,9 @@ class PersistedRolloverModifier extends RolloverModifier {
     protected void handleMasterTouchUpEvent(PointF point) {
         // don't propagate touch up so the rollover drawing won't disappear
     }
+
+    @Override
+    public void detach() {
+
+    }
 }

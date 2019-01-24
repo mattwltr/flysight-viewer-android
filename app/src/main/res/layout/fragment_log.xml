@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:alignContent="flex_start"
     app:alignItems="flex_start"
-    app:flexWrap="nowrap">
+    app:flexWrap="nowrap"
+    tools:context="matt.wltr.labs.flysightviewer.ui.LogActivity">
 
     <!-- main chart -->
     <matt.wltr.labs.flysightviewer.ui.logview.linechartview.LineChartView
         android:id="@+id/line_chart"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"/>
 
     <!-- sidebar -->
     <LinearLayout
@@ -29,7 +31,7 @@
             android:layout_height="@dimen/top_view_chart_size"
             android:layout_marginBottom="10dp"
             app:layout_maxHeight="@dimen/top_view_chart_size"
-            app:layout_minHeight="@dimen/top_view_chart_size" />
+            app:layout_minHeight="@dimen/top_view_chart_size"/>
 
         <matt.wltr.labs.flysightviewer.ui.logview.HeadingView
             android:id="@+id/heading"

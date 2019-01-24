@@ -12,6 +12,7 @@ import java.util.Date;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import labs.wltr.matt.flysightviewer.R;
+import matt.wltr.labs.flysightviewer.ui.LocalizedFormatBuilder;
 
 public class DurationView extends LinearLayout {
 
@@ -26,7 +27,7 @@ public class DurationView extends LinearLayout {
 
     public DurationView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        inflate(getContext(), R.layout.fragment_duration, this);
+        inflate(getContext(), R.layout.view_duration, this);
         ButterKnife.bind(this);
         valueFormatter = LocalizedFormatBuilder.numberFormat(context);
         valueFormatter.setMinimumFractionDigits(0);

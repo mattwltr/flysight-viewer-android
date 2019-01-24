@@ -1,6 +1,7 @@
 package matt.wltr.labs.flysightviewer.ui.logview.topview;
 
 import android.content.Context;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
@@ -12,6 +13,7 @@ import com.scichart.charting.visuals.axes.AutoRange;
 import com.scichart.charting.visuals.axes.AxisAlignment;
 import com.scichart.charting.visuals.axes.IAxis;
 import com.scichart.core.framework.UpdateSuspender;
+import com.scichart.drawing.canvas.RenderSurface;
 import com.scichart.extensions.builders.SciChartBuilder;
 
 import java.util.Collections;
@@ -29,8 +31,7 @@ public class TopView extends SciChartSurface {
 
     private final SciChartBuilder sciChartBuilder = SciChartBuilder.instance();
 
-    private final IAnnotation topViewChartMarker =
-            sciChartBuilder.newBoxAnnotation().withXAxisId(X_AXIS_ID).withYAxisId(Y_AXIS_ID).withBackgroundDrawableId(R.drawable.top_view_chart_marker).build();
+    private IAnnotation topViewChartMarker;
 
     private IAxis xAxis;
     private IAxis yAxis;
@@ -39,11 +40,15 @@ public class TopView extends SciChartSurface {
 
     public TopView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
+        setRenderSurface(new RenderSurface(context.getApplicationContext())); // avoid black flickering on initial draw
     }
 
     public void initialize(@NonNull FlySightLog flySightLog) {
 
         this.flySightLog = flySightLog;
+
+        topViewChartMarker =
+                sciChartBuilder.newBoxAnnotation().withXAxisId(X_AXIS_ID).withYAxisId(Y_AXIS_ID).withBackgroundDrawableId(R.drawable.top_view_chart_marker).build();
 
         final IXyDataSeries<Double, Double> dataSeries = sciChartBuilder.newXyDataSeries(Double.class, Double.class).withAcceptsUnsortedData().build();
         for (Map.Entry<Date, FlySightRecord> recordEntry : flySightLog.getRecords().entrySet()) {
