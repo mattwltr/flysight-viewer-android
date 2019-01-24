@@ -1,1 +1,1 @@
-![FlySight viewer for Android](resources/design.jpg)
+![FlySight viewer for Android](resources/preview.jpg)
