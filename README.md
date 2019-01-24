@@ -1,1 +1,1 @@
-"# flysight-viewer-android" 
+![FlySight viewer for Android](resources/design.jpg)
