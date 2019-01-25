@@ -164,7 +164,7 @@ public class LogActivity extends AppCompatActivity {
         viewLocked = true;
         menuItem.setIcon(getResources().getDrawable(R.drawable.ic_lock, getTheme()));
         lineChartView.disableRubberBandModifier();
-        lineChartView.reenableRolloverLine();
+        lineChartView.enableRolloverLine();
     }
 
     private void unlockView(@NonNull MenuItem menuItem) {
@@ -186,7 +186,7 @@ public class LogActivity extends AppCompatActivity {
                 return true;
             case R.id.log_menu_zoom_out:
                 if (viewLocked && lineChartView.isRolloverModifierEnabled()) {
-                    lineChartView.reenableRolloverLine();
+                    lineChartView.enableRolloverLine();
                 }
                 lineChartView.zoomExtents();
                 menuItem.setVisible(false);

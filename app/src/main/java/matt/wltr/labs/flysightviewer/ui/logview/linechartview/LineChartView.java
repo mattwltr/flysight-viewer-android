@@ -1,13 +1,10 @@
 package matt.wltr.labs.flysightviewer.ui.logview.linechartview;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
-import android.view.MenuItem;
 import android.view.View;
 
 import com.scichart.charting.model.dataSeries.IXyDataSeries;
@@ -41,7 +38,6 @@ import matt.wltr.labs.flysightviewer.flysight.FlySightLog;
 import matt.wltr.labs.flysightviewer.flysight.FlySightRecord;
 import matt.wltr.labs.flysightviewer.flysight.MinMax;
 import matt.wltr.labs.flysightviewer.flysight.Unit;
-import matt.wltr.labs.flysightviewer.ui.logview.SciChartLicenceLoader;
 
 public class LineChartView extends SciChartSurface {
 
@@ -58,8 +54,6 @@ public class LineChartView extends SciChartSurface {
         RUBBER_BAND_XY_ZOOM_MODIFIER.setIsXAxisOnly(true);
         RUBBER_BAND_XY_ZOOM_MODIFIER.setReceiveHandledEvents(true);
         RUBBER_BAND_XY_ZOOM_MODIFIER.setIsAnimated(false);
-
-        ROLLOVER_MODIFIER.setIsEnabled(false);
     }
 
     private static final List<FlySightDataType> VISIBLE_DATA_TYPES =
@@ -148,9 +142,8 @@ public class LineChartView extends SciChartSurface {
                         }
 
                         if (ROLLOVER_MODIFIER.getIsEnabled()) {
-                            reenableRolloverLine();
-                        } else {
                             disableRolloverLine();
+                            enableRolloverLine();
                         }
 
                         IAxis glideRatioYAxis = getYAxes().getAxisById(FlySightDataType.GLIDE_RATIO.name());
@@ -370,10 +363,8 @@ public class LineChartView extends SciChartSurface {
         xAxis.setVisibleRange(new DateRange(begin, end));
     }
 
-    public void reenableRolloverLine() {
-        getChartModifiers().remove(ROLLOVER_MODIFIER);
-        getChartModifiers().add(ROLLOVER_MODIFIER);
-        ROLLOVER_MODIFIER.setIsEnabled(true);
+    public void enableRolloverLine() {
+        ROLLOVER_MODIFIER.enable();
         ROLLOVER_MODIFIER.getVerticalLinePaint().setColor(Color.WHITE);
         ROLLOVER_MODIFIER.getVerticalLinePaint().setStrokeWidth(0);
     }
@@ -383,9 +374,7 @@ public class LineChartView extends SciChartSurface {
     }
 
     public void disableRolloverLine() {
-        getChartModifiers().remove(ROLLOVER_MODIFIER);
-        getChartModifiers().add(ROLLOVER_MODIFIER);
-        ROLLOVER_MODIFIER.setIsEnabled(false);
+        ROLLOVER_MODIFIER.disable();
     }
 
     public void enableRubberBandModifier() {
