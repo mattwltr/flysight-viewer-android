@@ -9,14 +9,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.threeten.bp.format.DateTimeFormatter;
+
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import labs.wltr.matt.flysightviewer.R;
-import matt.wltr.labs.flysightviewer.flysight.FlySightLogPreview;
+import matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata;
 
 public class LogbookAdapter extends RecyclerView.Adapter<LogbookAdapter.LogbookEntryViewHolder> {
+
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public static class LogbookEntryViewHolder extends RecyclerView.ViewHolder {
 
@@ -37,9 +41,9 @@ public class LogbookAdapter extends RecyclerView.Adapter<LogbookAdapter.LogbookE
         }
     }
 
-    private List<FlySightLogPreview> logFilePaths;
+    private List<LogbookListEntry> logFilePaths;
 
-    public LogbookAdapter(List<FlySightLogPreview> logFilePaths) {
+    public LogbookAdapter(List<LogbookListEntry> logFilePaths) {
         this.logFilePaths = logFilePaths;
     }
 
@@ -53,25 +57,25 @@ public class LogbookAdapter extends RecyclerView.Adapter<LogbookAdapter.LogbookE
     @Override
     public void onBindViewHolder(@NonNull LogbookEntryViewHolder logbookEntryViewHolder, int position) {
 
-        final FlySightLogPreview flySightLogPreview = logFilePaths.get(position);
+        final LogbookListEntry logbookListEntry = logFilePaths.get(position);
 
-        logbookEntryViewHolder.setLabel(flySightLogPreview.getName());
+        FlySightLogMetadata flySightLogMetadata = logbookListEntry.getFlySightLogMetadata();
+
+        String formattedDate =
+                logbookEntryViewHolder.getItemView().getResources().getString(R.string.utc_date_format, DATE_TIME_FORMAT.format(flySightLogMetadata.getUtcDate()));
+        logbookEntryViewHolder.setLabel(formattedDate);
 
         logbookEntryViewHolder
                 .getItemView()
                 .setOnClickListener(
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
+                        view -> {
+                            Intent intent = new Intent(view.getContext(), LogActivity.class);
 
-                                Intent intent = new Intent(view.getContext(), LogActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString(LogActivity.FLY_SIGHT_LOG_URI_INTENT_KEY, logbookListEntry.getLogUri().toString());
+                            intent.putExtras(bundle);
 
-                                Bundle bundle = new Bundle();
-                                bundle.putString(LogActivity.FLY_SIGHT_LOG_URI_INTENT_KEY, flySightLogPreview.getUri().toString());
-                                intent.putExtras(bundle);
-
-                                view.getContext().startActivity(intent);
-                            }
+                            view.getContext().startActivity(intent);
                         });
     }
 

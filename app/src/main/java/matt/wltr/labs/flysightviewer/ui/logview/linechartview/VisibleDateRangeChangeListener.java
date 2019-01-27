@@ -2,9 +2,9 @@ package matt.wltr.labs.flysightviewer.ui.logview.linechartview;
 
 import android.support.annotation.NonNull;
 
-import java.util.Date;
+import org.threeten.bp.OffsetDateTime;
 
 public interface VisibleDateRangeChangeListener {
 
-    void onVisibleDateRangeChange(@NonNull Date newMin, @NonNull Date newMax);
+    void onVisibleDateRangeChange(@NonNull OffsetDateTime newMin, @NonNull OffsetDateTime newMax);
 }

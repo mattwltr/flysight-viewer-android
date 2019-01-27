@@ -13,13 +13,13 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="TODO" android:src="@drawable/ic_dive_angle" />
+            android:src="@drawable/ic_dive_angle" />
 
         <ImageView
             android:id="@+id/dive_angle_icon_arrow"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="TODO" android:scaleType="matrix"
+            android:scaleType="matrix"
             android:src="@drawable/ic_dive_angle_arrow" />
 
     </RelativeLayout>

@@ -3,33 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/log_menu_zoom_out"
-        android:icon="@drawable/ic_extend"
-        android:title="@string/log_menu_zoom"
-        android:visible="false"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/log_menu_chart_mode"
-        android:icon="@drawable/ic_unlock"
-        android:title="@string/log_menu_chart_mode"
-        android:visible="false"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/log_menu_skydive"
-        android:icon="@drawable/ic_skydive"
-        android:title="@string/log_menu_skydive"
-        android:visible="false"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/main_menu_choose_file"
-        android:icon="@drawable/ic_file"
-        android:title="@string/main_menu_choose_file"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/main_menu_choose_folder"
         android:icon="@drawable/ic_folder"
         android:title="@string/main_menu_choose_folder"

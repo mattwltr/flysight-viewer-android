@@ -19,13 +19,9 @@ class PersistedRolloverModifier extends RolloverModifier {
         ChartModifierSurface chartModifierSurface = (ChartModifierSurface) getModifierSurface();
         if (chartModifierSurface != null) {
             for (int modifierSurfaceChildIndex = 0; modifierSurfaceChildIndex < chartModifierSurface.getChildCount(); ++modifierSurfaceChildIndex) {
-
-                View view = chartModifierSurface.getChildAt(modifierSurfaceChildIndex);
-
-                view.setVisibility(View.VISIBLE);
+                chartModifierSurface.getChildAt(modifierSurfaceChildIndex).setVisibility(View.VISIBLE);
             }
         }
-
         super.handleMasterTouchDownEvent(point);
     }
 
@@ -38,17 +34,9 @@ class PersistedRolloverModifier extends RolloverModifier {
         ChartModifierSurface chartModifierSurface = (ChartModifierSurface) getModifierSurface();
         if (chartModifierSurface != null) {
             for (int modifierSurfaceChildIndex = 0; modifierSurfaceChildIndex < chartModifierSurface.getChildCount(); ++modifierSurfaceChildIndex) {
-
-                View view = chartModifierSurface.getChildAt(modifierSurfaceChildIndex);
-
-                view.setVisibility(View.INVISIBLE);
+                chartModifierSurface.getChildAt(modifierSurfaceChildIndex).setVisibility(View.INVISIBLE);
             }
         }
         setIsEnabled(false);
     }
-
-//    @Override
-//    public void detach() {
-//        super.detach();
-//    }
 }

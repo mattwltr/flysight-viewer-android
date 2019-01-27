@@ -6,8 +6,10 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.threeten.bp.Duration;
+import org.threeten.bp.OffsetDateTime;
+
 import java.text.NumberFormat;
-import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -21,9 +23,9 @@ public class DurationView extends LinearLayout {
 
     private NumberFormat valueFormatter;
 
-    private Date begin;
+    private OffsetDateTime begin;
 
-    private Date end;
+    private OffsetDateTime end;
 
     public DurationView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
@@ -35,18 +37,18 @@ public class DurationView extends LinearLayout {
         valueFormatter.setGroupingUsed(false);
     }
 
-    public void initializeRange(@NonNull Date begin, @NonNull Date end) {
+    public void initializeRange(@NonNull OffsetDateTime begin, @NonNull OffsetDateTime end) {
         this.begin = begin;
         this.end = end;
         updateView();
     }
 
-    public void updateEnd(@NonNull Date end) {
+    public void updateEnd(@NonNull OffsetDateTime end) {
         this.end = end;
         updateView();
     }
 
     private void updateView() {
-        valueView.setText(getResources().getString(R.string.second_value, valueFormatter.format((this.end.getTime() - begin.getTime()) / 1000)));
+        valueView.setText(getResources().getString(R.string.second_value, valueFormatter.format(Duration.between(begin, this.end).getSeconds())));
     }
 }

@@ -12,13 +12,13 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="TODO" android:src="@drawable/ic_heading" />
+            android:src="@drawable/ic_heading" />
 
         <ImageView
             android:id="@+id/heading_icon_arrow"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="TODO" android:scaleType="matrix"
+            android:scaleType="matrix"
             android:src="@drawable/ic_heading_arrow" />
 
     </RelativeLayout>

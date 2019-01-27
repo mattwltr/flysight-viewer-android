@@ -1,23 +1,23 @@
 package matt.wltr.labs.flysightviewer.flysight;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
+
+import org.threeten.bp.OffsetDateTime;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
-public class FlySightLogParser {
+import matt.wltr.labs.flysightviewer.ui.ProgressListener;
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+public class FlySightLogParser {
 
     private static final List<FlySightDataType> MANDATORY_CSV_COLUMNS =
             Arrays.asList(
@@ -29,30 +29,46 @@ public class FlySightLogParser {
                     FlySightDataType.VELOCITY_EAST,
                     FlySightDataType.VELOCITY_DOWN);
 
-    public static FlySightLog parse(@NonNull InputStream inputStream, @NonNull ParseMode parseMode) {
+    public static FlySightLog parse(@NonNull FileInputStream inputStream, @NonNull ParseMode parseMode) {
+        return parse(inputStream, parseMode, null);
+    }
 
-        Map<Date, FlySightRecord> records = new LinkedHashMap<>();
+    public static FlySightLog parse(@NonNull FileInputStream inputStream, @NonNull ParseMode parseMode, ProgressListener progressListener) {
+
+        Map<OffsetDateTime, FlySightRecord> records = new LinkedHashMap<>();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
-            Map<FlySightDataType, Integer> columnMapping = getColumnMapping(reader.readLine());
+            long fileSize = inputStream.getChannel().size();
+            long bytesRead = 0;
+            int percentageProgress = 0;
+            int lineBreakLength = 2;
+
+            String headline = reader.readLine();
+            bytesRead += headline.getBytes(StandardCharsets.UTF_8).length + lineBreakLength;
+
+            Map<FlySightDataType, Integer> columnMapping = getColumnMapping(headline);
             if (!columnMapping.keySet().containsAll(MANDATORY_CSV_COLUMNS)) {
                 // mandatory column(s) missing
                 return null;
             }
 
-            reader.readLine(); // skip second headline with measurements
+            String headlineDescription = reader.readLine(); // skip second headline with measurements
+            bytesRead += headlineDescription.getBytes(StandardCharsets.UTF_8).length + lineBreakLength;
 
             FlySightRecord lastRecord = null;
 
             String csvLine;
             while ((csvLine = reader.readLine()) != null) {
+
+                bytesRead += csvLine.getBytes(StandardCharsets.UTF_8).length + lineBreakLength;
+
                 String[] columns = csvLine.split(",");
 
-                Date date;
+                OffsetDateTime date;
                 try {
-                    date = DATE_FORMAT.parse(columns[columnMapping.get(FlySightDataType.DATE)]);
-                } catch (ParseException e) {
+                    date = OffsetDateTime.parse(columns[columnMapping.get(FlySightDataType.DATE)]);
+                } catch (Exception e) {
                     // invalid date format
                     return null;
                 }
@@ -103,6 +119,14 @@ public class FlySightLogParser {
 
                 if (parseMode.equals(ParseMode.FIRST_DATA_LINE) && records.size() == 2) {
                     break;
+                }
+
+                int newPercentageProgress = (int) ((bytesRead * 100) / fileSize);
+                if (newPercentageProgress != percentageProgress) {
+                    percentageProgress = newPercentageProgress;
+                    if (progressListener != null) {
+                        progressListener.onProgress(percentageProgress);
+                    }
                 }
             }
         } catch (Exception e) {

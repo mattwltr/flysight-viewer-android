@@ -25,10 +25,16 @@ import com.scichart.drawing.canvas.RenderSurface;
 import com.scichart.drawing.common.FontStyle;
 import com.scichart.extensions.builders.SciChartBuilder;
 
+import org.threeten.bp.DateTimeUtils;
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,14 +47,14 @@ import matt.wltr.labs.flysightviewer.flysight.Unit;
 
 public class LineChartView extends SciChartSurface {
 
-    private static final String X_AXIS_ID = "mainChartXAxis";
-    private static final String Y_AXIS_ID_POSITION = "mainChartPositionYAxis";
+    static final String X_AXIS_ID = "mainChartXAxis";
+    static final String Y_AXIS_ID_POSITION = "mainChartPositionYAxis";
 
     /** Rubber band modifier for main chart for zooming */
-    private static final RubberBandXyZoomModifier RUBBER_BAND_XY_ZOOM_MODIFIER = new RubberBandXyZoomModifier();
+    static final RubberBandXyZoomModifier RUBBER_BAND_XY_ZOOM_MODIFIER = new RubberBandXyZoomModifier();
 
     /** Rollover modifier for main chart to display highlighted values */
-    private static final PersistedRolloverModifier ROLLOVER_MODIFIER = new PersistedRolloverModifier();
+    static final PersistedRolloverModifier ROLLOVER_MODIFIER = new PersistedRolloverModifier();
 
     static {
         RUBBER_BAND_XY_ZOOM_MODIFIER.setIsXAxisOnly(true);
@@ -56,7 +62,7 @@ public class LineChartView extends SciChartSurface {
         RUBBER_BAND_XY_ZOOM_MODIFIER.setIsAnimated(false);
     }
 
-    private static final List<FlySightDataType> VISIBLE_DATA_TYPES =
+    static final List<FlySightDataType> VISIBLE_DATA_TYPES =
             Arrays.asList(
                     FlySightDataType.GLIDE_RATIO,
                     FlySightDataType.TOTAL_SPEED,
@@ -69,12 +75,14 @@ public class LineChartView extends SciChartSurface {
     private IAxis xAxis;
     private final List<IAxis> yAxes = new ArrayList<>();
     private final List<XyRenderableSeriesBase> xyRenderableSeriesBases = new ArrayList<>();
+    Map<String, IXyDataSeries<Date, Double>> dataSeriesMap = new HashMap<>();
 
     private ZoomListener zoomListener;
     private VisibleDateRangeChangeListener visibleDateRangeChangeListener;
     private FlySightRecordSelectionListener flySightRecordSelectionListener;
+    private LineChartInitializeListener lineChartInitializeListener;
 
-    private FlySightLog flySightLog;
+    FlySightLog flySightLog;
 
     public LineChartView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
@@ -90,15 +98,29 @@ public class LineChartView extends SciChartSurface {
 
         UpdateSuspender.using(
                 this,
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        Collections.addAll(getXAxes(), xAxis);
-                        Collections.addAll(getYAxes(), yAxes.toArray(new IAxis[0]));
-                        Collections.addAll(getRenderableSeries(), xyRenderableSeriesBases.toArray(new XyRenderableSeriesBase[0]));
-                        Collections.addAll(getChartModifiers(), sciChartBuilder.newModifierGroup().withModifier(RUBBER_BAND_XY_ZOOM_MODIFIER).build(), ROLLOVER_MODIFIER);
-                    }
+                () -> {
+                    Collections.addAll(getXAxes(), xAxis);
+                    Collections.addAll(getYAxes(), yAxes.toArray(new IAxis[0]));
+                    Collections.addAll(getRenderableSeries(), xyRenderableSeriesBases.toArray(new XyRenderableSeriesBase[0]));
+                    Collections.addAll(getChartModifiers(), sciChartBuilder.newModifierGroup().withModifier(RUBBER_BAND_XY_ZOOM_MODIFIER).build(), ROLLOVER_MODIFIER);
                 });
+
+        new LineChartInitializeTask(new LineChartInitializeListener() {
+            @Override
+            public void onProgress(int percentage) {
+                if (lineChartInitializeListener != null) {
+                    lineChartInitializeListener.onProgress(percentage);
+                }
+            }
+
+            @Override
+            public void onFinish() {
+                if (lineChartInitializeListener != null) {
+                    lineChartInitializeListener.onFinish();
+                }
+                zoomExtents();
+            }
+        }).execute(this);
     }
 
     private void initializeXAxis() {
@@ -132,10 +154,26 @@ public class LineChartView extends SciChartSurface {
                             return;
                         }
 
-                        Date newMin = (Date) newRange.getMin();
-                        Date oldMin = (Date) oldRange.getMin();
-                        Date newMax = (Date) newRange.getMax();
-                        Date oldMax = (Date) oldRange.getMax();
+                        OffsetDateTime newMin =
+                                DateTimeUtils.toInstant((Date) newRange.getMin())
+                                        .atZone(ZoneId.systemDefault())
+                                        .toOffsetDateTime()
+                                        .withOffsetSameLocal(flySightLog.getZoneOffset());
+                        OffsetDateTime oldMin =
+                                DateTimeUtils.toInstant((Date) oldRange.getMin())
+                                        .atZone(ZoneId.systemDefault())
+                                        .toOffsetDateTime()
+                                        .withOffsetSameLocal(flySightLog.getZoneOffset());
+                        OffsetDateTime newMax =
+                                DateTimeUtils.toInstant((Date) newRange.getMax())
+                                        .atZone(ZoneId.systemDefault())
+                                        .toOffsetDateTime()
+                                        .withOffsetSameLocal(flySightLog.getZoneOffset());
+                        OffsetDateTime oldMax =
+                                DateTimeUtils.toInstant((Date) oldRange.getMax())
+                                        .atZone(ZoneId.systemDefault())
+                                        .toOffsetDateTime()
+                                        .withOffsetSameLocal(flySightLog.getZoneOffset());
 
                         if (zoomListener != null && hasZoomedIn(newMin, oldMin, newMax, oldMax)) {
                             zoomListener.onZoom(ZoomEvent.ZOOM_IN);
@@ -155,8 +193,8 @@ public class LineChartView extends SciChartSurface {
                         }
                     }
 
-                    private boolean hasZoomedIn(Date newMin, Date oldMin, Date newMax, Date oldMax) {
-                        return newMin.after(oldMin) || newMax.before(oldMax);
+                    private boolean hasZoomedIn(OffsetDateTime newMin, OffsetDateTime oldMin, OffsetDateTime newMax, OffsetDateTime oldMax) {
+                        return newMin.isAfter(oldMin) || newMax.isBefore(oldMax);
                     }
                 });
     }
@@ -167,10 +205,13 @@ public class LineChartView extends SciChartSurface {
 
             int color = getColor(dataType);
 
+            IXyDataSeries<Date, Double> dataSeries = sciChartBuilder.newXyDataSeries(Date.class, Double.class).withSeriesName(dataType.name()).build();
+            dataSeriesMap.put(dataType.name(), dataSeries);
+
             xyRenderableSeriesBases.add(
                     sciChartBuilder
                             .newLineSeries()
-                            .withDataSeries(createXyDataSeries(flySightLog, dataType))
+                            .withDataSeries(dataSeries)
                             .withSeriesInfoProvider(new YAxisInfoProvider(getValuePattern(dataType, dataType.getUnit()), color))
                             .withXAxisId(xAxis.getAxisId())
                             .withYAxisId(dataType.name())
@@ -202,15 +243,12 @@ public class LineChartView extends SciChartSurface {
                 yAxis.setVisibleRange(new DoubleRange(glideRatioMinMax.getMin(), glideRatioMinMax.getMax()));
             } else {
                 yAxis.setVisibleRangeChangeListener(
-                        new VisibleRangeChangeListener() {
-                            @Override
-                            public void onVisibleRangeChanged(IAxisCore iAxisCore, IRange oldRange, IRange newRange, boolean isAnimating) {
-                                if (oldRange.getMinAsDouble() == newRange.getMinAsDouble() && oldRange.getMaxAsDouble() == newRange.getMaxAsDouble()) {
-                                    return;
-                                }
-                                if (iAxisCore.getDataRange().getMinAsDouble() >= 0 && newRange.getMinAsDouble() < 0) {
-                                    iAxisCore.setVisibleRange(new DoubleRange(0D, newRange.getMaxAsDouble()));
-                                }
+                        (iAxisCore, oldRange, newRange, isAnimating) -> {
+                            if (oldRange.getMinAsDouble() == newRange.getMinAsDouble() && oldRange.getMaxAsDouble() == newRange.getMaxAsDouble()) {
+                                return;
+                            }
+                            if (iAxisCore.getDataRange().getMinAsDouble() >= 0 && newRange.getMinAsDouble() < 0) {
+                                iAxisCore.setVisibleRange(new DoubleRange(0D, newRange.getMaxAsDouble()));
                             }
                         });
             }
@@ -227,48 +265,33 @@ public class LineChartView extends SciChartSurface {
                         .withVisibleRange(10, 20)
                         .withVisibility(View.GONE)
                         .build();
-        positionYAxis.setVisibleRangeChangeListener(
-                new VisibleRangeChangeListener() {
-                    @Override
-                    public void onVisibleRangeChanged(IAxisCore iAxisCore, IRange oldRange, IRange newRange, boolean isAnimating) {
-                        iAxisCore.setVisibleRange(new DoubleRange(10D, 20D));
-                    }
-                });
+        positionYAxis.setVisibleRangeChangeListener((iAxisCore, oldRange, newRange, isAnimating) -> iAxisCore.setVisibleRange(new DoubleRange(10D, 20D)));
         yAxes.add(positionYAxis);
 
-        // position (fake) data with selection observer that will "animate" the topViewChart
-        final IXyDataSeries<Date, Double> positionDataSeries = sciChartBuilder.newXyDataSeries(Date.class, Double.class).build();
-        for (Map.Entry<Date, FlySightRecord> recordEntry : flySightLog.getRecords().entrySet()) {
-            positionDataSeries.append(recordEntry.getKey(), 0D);
-        }
+        IXyDataSeries<Date, Double> dataSeries = sciChartBuilder.newXyDataSeries(Date.class, Double.class).build();
+        dataSeriesMap.put(Y_AXIS_ID_POSITION, dataSeries);
         xyRenderableSeriesBases.add(
                 sciChartBuilder
                         .newLineSeries()
-                        .withDataSeries(positionDataSeries)
+                        .withDataSeries(dataSeries)
                         .withSeriesInfoProvider(
                                 new YAxisSelectionInfoProvider(
-                                        new YAxisSelectionListener() {
-                                            @Override
-                                            public void onSelect(@NonNull Date date) {
-                                                if (flySightRecordSelectionListener != null) {
-                                                    FlySightRecord flySightRecord = flySightLog.getRecords().get(date);
-                                                    if (flySightRecord != null) {
-                                                        flySightRecordSelectionListener.onFlySightRecordSelect(flySightRecord);
-                                                    }
+                                        date -> {
+                                            if (flySightRecordSelectionListener != null) {
+                                                OffsetDateTime offsetDateTime =
+                                                        DateTimeUtils.toInstant(date)
+                                                                .atZone(ZoneId.systemDefault())
+                                                                .toOffsetDateTime()
+                                                                .withOffsetSameLocal(flySightLog.getZoneOffset());
+                                                FlySightRecord flySightRecord = flySightLog.getRecords().get(offsetDateTime);
+                                                if (flySightRecord != null) {
+                                                    flySightRecordSelectionListener.onFlySightRecordSelect(flySightRecord);
                                                 }
                                             }
                                         }))
                         .withXAxisId(X_AXIS_ID)
                         .withYAxisId(Y_AXIS_ID_POSITION)
                         .build());
-    }
-
-    public IXyDataSeries<Date, Double> createXyDataSeries(@NonNull FlySightLog flySightLog, @NonNull FlySightDataType dataType) {
-        final IXyDataSeries<Date, Double> dataSeries = sciChartBuilder.newXyDataSeries(Date.class, Double.class).withSeriesName(dataType.name()).build();
-        for (Map.Entry<Date, FlySightRecord> recordEntry : flySightLog.getRecords().entrySet()) {
-            dataSeries.append(recordEntry.getKey(), recordEntry.getValue().getValue(dataType));
-        }
-        return dataSeries;
     }
 
     private String getAxisTitle(@NonNull FlySightDataType dataType, @NonNull Unit unit) {
@@ -359,8 +382,13 @@ public class LineChartView extends SciChartSurface {
         return formattedValue;
     }
 
-    public void showDateRange(@NonNull Date begin, @NonNull Date end) {
-        xAxis.setVisibleRange(new DateRange(begin, end));
+    public void showDateRange(@NonNull OffsetDateTime begin, @NonNull OffsetDateTime end) {
+        xAxis.setVisibleRange(
+                new DateRange(
+                        DateTimeUtils.toDate(
+                                ZonedDateTime.ofInstant(begin.toInstant(), begin.getOffset().normalized()).withZoneSameLocal(ZoneId.systemDefault()).toInstant()),
+                        DateTimeUtils.toDate(
+                                ZonedDateTime.ofInstant(end.toInstant(), end.getOffset().normalized()).withZoneSameLocal(ZoneId.systemDefault()).toInstant())));
     }
 
     public void enableRolloverLine() {
@@ -407,5 +435,13 @@ public class LineChartView extends SciChartSurface {
 
     public void setFlySightRecordSelectionListener(FlySightRecordSelectionListener flySightRecordSelectionListener) {
         this.flySightRecordSelectionListener = flySightRecordSelectionListener;
+    }
+
+    public LineChartInitializeListener getLineChartInitializeListener() {
+        return lineChartInitializeListener;
+    }
+
+    public void setLineChartInitializeListener(LineChartInitializeListener lineChartInitializeListener) {
+        this.lineChartInitializeListener = lineChartInitializeListener;
     }
 }

@@ -1,7 +1,6 @@
 package matt.wltr.labs.flysightviewer.ui.logview.topview;
 
 import android.content.Context;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
@@ -15,6 +14,8 @@ import com.scichart.charting.visuals.axes.IAxis;
 import com.scichart.core.framework.UpdateSuspender;
 import com.scichart.drawing.canvas.RenderSurface;
 import com.scichart.extensions.builders.SciChartBuilder;
+
+import org.threeten.bp.OffsetDateTime;
 
 import java.util.Collections;
 import java.util.Date;
@@ -51,7 +52,7 @@ public class TopView extends SciChartSurface {
                 sciChartBuilder.newBoxAnnotation().withXAxisId(X_AXIS_ID).withYAxisId(Y_AXIS_ID).withBackgroundDrawableId(R.drawable.top_view_chart_marker).build();
 
         final IXyDataSeries<Double, Double> dataSeries = sciChartBuilder.newXyDataSeries(Double.class, Double.class).withAcceptsUnsortedData().build();
-        for (Map.Entry<Date, FlySightRecord> recordEntry : flySightLog.getRecords().entrySet()) {
+        for (Map.Entry<OffsetDateTime, FlySightRecord> recordEntry : flySightLog.getRecords().entrySet()) {
             dataSeries.append(recordEntry.getValue().getX(), recordEntry.getValue().getY());
         }
 
@@ -60,23 +61,20 @@ public class TopView extends SciChartSurface {
 
         UpdateSuspender.using(
                 this,
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        Collections.addAll(getXAxes(), xAxis);
-                        Collections.addAll(getYAxes(), yAxis);
-                        Collections.addAll(
-                                getRenderableSeries(),
-                                sciChartBuilder
-                                        .newLineSeries()
-                                        .withDataSeries(dataSeries)
-                                        .withXAxisId(X_AXIS_ID)
-                                        .withYAxisId(Y_AXIS_ID)
-                                        .withStrokeStyle(color, 1f, true)
-                                        .build());
-                        Collections.addAll(getAnnotations(), topViewChartMarker);
-                        getChartModifiers().add(sciChartBuilder.newModifierGroupWithDefaultModifiers().build());
-                    }
+                () -> {
+                    Collections.addAll(getXAxes(), xAxis);
+                    Collections.addAll(getYAxes(), yAxis);
+                    Collections.addAll(
+                            getRenderableSeries(),
+                            sciChartBuilder
+                                    .newLineSeries()
+                                    .withDataSeries(dataSeries)
+                                    .withXAxisId(X_AXIS_ID)
+                                    .withYAxisId(Y_AXIS_ID)
+                                    .withStrokeStyle(color, 1f, true)
+                                    .build());
+                    Collections.addAll(getAnnotations(), topViewChartMarker);
+                    getChartModifiers().add(sciChartBuilder.newModifierGroupWithDefaultModifiers().build());
                 });
 
         FlySightRecord firstFlySightRecord = flySightLog.getRecords().entrySet().iterator().next().getValue();
@@ -116,10 +114,10 @@ public class TopView extends SciChartSurface {
                         .build();
     }
 
-    public void showDateRange(Date begin, Date end) {
+    public void showDateRange(OffsetDateTime begin, OffsetDateTime end) {
 
         final IXyDataSeries<Double, Double> dataSeries = sciChartBuilder.newXyDataSeries(Double.class, Double.class).withAcceptsUnsortedData().build();
-        for (Map.Entry<Date, FlySightRecord> recordEntry : flySightLog.getRecords(begin, end).entrySet()) {
+        for (Map.Entry<OffsetDateTime, FlySightRecord> recordEntry : flySightLog.getRecords(begin, end).entrySet()) {
             dataSeries.append(recordEntry.getValue().getX(), recordEntry.getValue().getY());
         }
 

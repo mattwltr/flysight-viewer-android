@@ -3,10 +3,11 @@
     <string name="app_name">FlySight Viewer</string>
     <string name="title_with_file_name">FlySight Viewer: %s</string>
     <string name="main_menu_choose_folder">Choose folder</string>
-    <string name="main_menu_choose_file">Choose file</string>
     <string name="log_menu_zoom">Zoom out</string>
     <string name="log_menu_chart_mode">Mode</string>
     <string name="log_menu_skydive">Skydive</string>
+    <string name="loading">Loading...</string>
+    <string name="utc_date_format">%s UTC</string>
 
     <!-- data -->
     <string name="elevation">Elevation</string>

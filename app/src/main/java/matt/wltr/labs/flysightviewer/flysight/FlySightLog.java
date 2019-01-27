@@ -2,15 +2,19 @@ package matt.wltr.labs.flysightviewer.flysight;
 
 import android.support.annotation.NonNull;
 
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.ZoneOffset;
+
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class FlySightLog implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final List<FlySightDataType> MIN_MAX_DATA_TYPES =
             Arrays.asList(
@@ -21,7 +25,9 @@ public class FlySightLog implements Serializable {
                     FlySightDataType.GLIDE_RATIO,
                     FlySightDataType.DIVE_ANGLE);
 
-    private Map<Date, FlySightRecord> records;
+    private ZoneOffset zoneOffset;
+
+    private Map<OffsetDateTime, FlySightRecord> records;
 
     /** min values by FlySightDataType */
     private Map<FlySightDataType, FlySightRecord> min = new HashMap<>();
@@ -33,14 +39,15 @@ public class FlySightLog implements Serializable {
 
     private FlySightRecord opening;
 
-    public FlySightLog(@NonNull Map<Date, FlySightRecord> records) {
+    public FlySightLog(@NonNull Map<OffsetDateTime, FlySightRecord> records) {
         this.records = records;
+        zoneOffset = records.keySet().iterator().next().getOffset();
         defineExtrema();
         defineExitAndOpening();
     }
 
     private void defineExtrema() {
-        for (Map.Entry<Date, FlySightRecord> recordEntry : this.records.entrySet()) {
+        for (Map.Entry<OffsetDateTime, FlySightRecord> recordEntry : this.records.entrySet()) {
             for (FlySightDataType dataType : MIN_MAX_DATA_TYPES) {
                 if (!min.containsKey(dataType) || (recordEntry.getValue().getValue(dataType) < min.get(dataType).getValue(dataType))) {
                     min.put(dataType, recordEntry.getValue());
@@ -53,7 +60,7 @@ public class FlySightLog implements Serializable {
     }
 
     private void defineExitAndOpening() {
-        for (Map.Entry<Date, FlySightRecord> recordEntry : this.records.entrySet()) {
+        for (Map.Entry<OffsetDateTime, FlySightRecord> recordEntry : this.records.entrySet()) {
             if (exit == null && recordEntry.getValue().getSpeedDown() > 40D) {
                 exit = recordEntry.getValue();
             } else if (exit != null && recordEntry.getValue().getSpeedDown() < 40D) {
@@ -63,29 +70,29 @@ public class FlySightLog implements Serializable {
         }
     }
 
-    public Map<Date, FlySightRecord> getRecords(Date min, Date max) {
+    public Map<OffsetDateTime, FlySightRecord> getRecords(OffsetDateTime min, OffsetDateTime max) {
 
         if (this.records == null) {
             return null;
         }
 
-        LinkedHashMap<Date, FlySightRecord> records = new LinkedHashMap<>();
-        for (Map.Entry<Date, FlySightRecord> recordEntry : this.records.entrySet()) {
-            if ((recordEntry.getKey().equals(min) || recordEntry.getKey().after(min)) && (recordEntry.getKey().equals(max) || recordEntry.getKey().before(max))) {
+        LinkedHashMap<OffsetDateTime, FlySightRecord> records = new LinkedHashMap<>();
+        for (Map.Entry<OffsetDateTime, FlySightRecord> recordEntry : this.records.entrySet()) {
+            if ((recordEntry.getKey().equals(min) || recordEntry.getKey().isAfter(min)) && (recordEntry.getKey().equals(max) || recordEntry.getKey().isBefore(max))) {
                 records.put(recordEntry.getKey(), recordEntry.getValue());
             }
         }
         return records;
     }
 
-    public FlySightRecord getClosestRecord(Date date) {
+    public FlySightRecord getClosestRecord(OffsetDateTime date) {
 
-        Date closestDate = records.keySet().iterator().next();
+        OffsetDateTime closestDate = records.keySet().iterator().next();
 
         long difference = Long.MAX_VALUE;
 
-        for (Date key : records.keySet()) {
-            long newDifference = calculateDifference(date.getTime(), key.getTime());
+        for (OffsetDateTime key : records.keySet()) {
+            long newDifference = calculateDifference(date, key);
             if (newDifference == 0) {
                 return records.get(key);
             }
@@ -99,23 +106,25 @@ public class FlySightLog implements Serializable {
         return records.get(closestDate);
     }
 
-    private long calculateDifference(long firstValue, long secondValue) {
+    private long calculateDifference(OffsetDateTime firstValue, OffsetDateTime secondValue) {
         if (firstValue == secondValue) {
             return 0L;
         }
-        return firstValue > secondValue ? firstValue - secondValue : secondValue - firstValue;
+        return firstValue.toInstant().toEpochMilli() > secondValue.toInstant().toEpochMilli()
+                ? firstValue.toInstant().toEpochMilli() - secondValue.toInstant().toEpochMilli()
+                : secondValue.toInstant().toEpochMilli() - firstValue.toInstant().toEpochMilli();
     }
 
-    public MinMax getMinMax(FlySightDataType dataType, Date rangeBegin, Date rangeEnd) {
+    public MinMax getMinMax(FlySightDataType dataType, OffsetDateTime rangeBegin, OffsetDateTime rangeEnd) {
 
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
 
-        for (Map.Entry<Date, FlySightRecord> entry : records.entrySet()) {
+        for (Map.Entry<OffsetDateTime, FlySightRecord> entry : records.entrySet()) {
 
             FlySightRecord flySightRecord = entry.getValue();
 
-            if ((rangeBegin != null && flySightRecord.getDate().before(rangeBegin)) || (rangeEnd != null && flySightRecord.getDate().after(rangeEnd))) {
+            if ((rangeBegin != null && flySightRecord.getDate().isBefore(rangeBegin)) || (rangeEnd != null && flySightRecord.getDate().isAfter(rangeEnd))) {
                 continue;
             }
 
@@ -134,7 +143,7 @@ public class FlySightLog implements Serializable {
         return new MinMax(min, max);
     }
 
-    public Map<Date, FlySightRecord> getRecords() {
+    public Map<OffsetDateTime, FlySightRecord> getRecords() {
         return records;
     }
 
@@ -152,5 +161,9 @@ public class FlySightLog implements Serializable {
 
     public FlySightRecord getOpening() {
         return opening;
+    }
+
+    public ZoneOffset getZoneOffset() {
+        return zoneOffset;
     }
 }

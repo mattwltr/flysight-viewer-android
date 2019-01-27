@@ -8,9 +8,13 @@ import android.provider.DocumentsContract;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import org.threeten.bp.OffsetDateTime;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +43,7 @@ public class FlySightLogbookImportTask extends AsyncTask<Uri, Integer, Void> {
 
         for (Uri uri : csvFileUris) {
             try {
-                InputStream inputStream = activity.getContentResolver().openInputStream(uri);
+                FileInputStream inputStream = (FileInputStream) activity.getContentResolver().openInputStream(uri);
                 if (inputStream == null) {
                     // skip, uri is not readable
                     continue;
@@ -49,10 +53,19 @@ public class FlySightLogbookImportTask extends AsyncTask<Uri, Integer, Void> {
                     // skip, can't parse FlySightLog -> no need to import
                     continue;
                 }
-                File file = FlySightLogSettings.getLogFile(activity, flySightLog.getRecords().keySet().iterator().next());
-                if (!file.exists()) {
-                    FileOutputStream fileOutputStream = new FileOutputStream(file, false);
+                OffsetDateTime date = flySightLog.getRecords().keySet().iterator().next();
+                File logFile = FlySightLogSettings.getLogFile(activity, date);
+                if (!logFile.exists()) {
+                    FileOutputStream fileOutputStream = new FileOutputStream(logFile, false);
                     IoUtils.copy(activity.getContentResolver().openInputStream(uri), fileOutputStream);
+                }
+                File metadataFile = FlySightLogSettings.getMetadataFile(activity, date);
+                if (!metadataFile.exists()) {
+                    FlySightLogMetadata flySightLogMetadata = FlySightLogMetadata.fromFlySightLog(flySightLog);
+                    FileOutputStream fileOutputStream = new FileOutputStream(metadataFile);
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    objectOutputStream.writeObject(flySightLogMetadata);
+                    objectOutputStream.close();
                 }
             } catch (Exception e) {
                 Log.e(FlySightLogbookImportTask.class.getSimpleName(), String.format("Could not read file %s", uri.toString()), e);

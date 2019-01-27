@@ -1,15 +1,18 @@
 package matt.wltr.labs.flysightviewer.flysight;
 
+import org.threeten.bp.OffsetDateTime;
+
 import java.io.Serializable;
-import java.util.Date;
 
 public class FlySightRecord implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** gravity (m/s²) */
     private static final float EARTH_GRAVITY = 9.80665F;
 
     /** date of recording */
-    private Date date;
+    private OffsetDateTime date;
 
     /** latitude (deg) */
     private Double lat;
@@ -146,11 +149,11 @@ public class FlySightRecord implements Serializable {
         }
     }
 
-    public Date getDate() {
+    public OffsetDateTime getDate() {
         return date;
     }
 
-    void setDate(Date date) {
+    void setDate(OffsetDateTime date) {
         this.date = date;
     }
 

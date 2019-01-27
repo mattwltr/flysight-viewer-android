@@ -5,17 +5,12 @@ import android.os.Build;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 public class LocalizedFormatBuilder {
 
     public static NumberFormat numberFormat(Context context) {
         return DecimalFormat.getInstance(getLocale(context));
-    }
-
-    public static SimpleDateFormat simpleDateFormat(Context context, String pattern) {
-        return new SimpleDateFormat(pattern, getLocale(context));
     }
 
     private static Locale getLocale(Context context) {

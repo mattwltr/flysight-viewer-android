@@ -64,7 +64,7 @@ public class DiveAngleView extends LinearLayout {
         Matrix matrix = arrowView.getMatrix();
         matrix.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.CENTER);
 
-        matrix.postRotate(diveAngle.floatValue(), arrowView.getWidth() / 2F, arrowView.getHeight() / 2F);
+        matrix.postRotate(diveAngle.floatValue(), (arrowView.getWidth() * 43.5F) / 100F, arrowView.getHeight() / 2F);
 
         arrowView.setImageMatrix(matrix);
     }
