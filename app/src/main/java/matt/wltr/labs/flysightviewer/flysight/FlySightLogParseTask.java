@@ -14,7 +14,7 @@ public class FlySightLogParseTask extends AsyncTask<FileInputStream, Integer, Fl
 
     @Override
     protected FlySightLog doInBackground(FileInputStream... inputStreams) {
-        return FlySightLogParser.parse(inputStreams[0], ParseMode.ALL, percentage -> flySightLogParseObserver.onProgress(percentage));
+        return FlySightLogParser.parse(inputStreams[0], ParseMode.ALL, ParsePrecision.INTELLIGENT, percentage -> flySightLogParseObserver.onProgress(percentage));
     }
 
     @Override

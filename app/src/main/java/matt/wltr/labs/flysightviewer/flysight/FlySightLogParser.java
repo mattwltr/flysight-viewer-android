@@ -1,8 +1,8 @@
 package matt.wltr.labs.flysightviewer.flysight;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
+import org.threeten.bp.Duration;
 import org.threeten.bp.OffsetDateTime;
 
 import java.io.BufferedReader;
@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,18 +31,20 @@ public class FlySightLogParser {
                     FlySightDataType.VELOCITY_DOWN);
 
     public static FlySightLog parse(@NonNull FileInputStream inputStream, @NonNull ParseMode parseMode) {
-        return parse(inputStream, parseMode, null);
+        return parse(inputStream, parseMode, ParsePrecision.ALL, null);
     }
 
-    public static FlySightLog parse(@NonNull FileInputStream inputStream, @NonNull ParseMode parseMode, ProgressListener progressListener) {
+    public static FlySightLog parse(
+            @NonNull FileInputStream inputStream, @NonNull ParseMode parseMode, ParsePrecision parsePrecision, ProgressListener progressListener) {
 
         Map<OffsetDateTime, FlySightRecord> records = new LinkedHashMap<>();
+
+        int percentageProgress = 0;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             long fileSize = inputStream.getChannel().size();
             long bytesRead = 0;
-            int percentageProgress = 0;
             int lineBreakLength = 2;
 
             String headline = reader.readLine();
@@ -71,6 +74,10 @@ public class FlySightLogParser {
                 } catch (Exception e) {
                     // invalid date format
                     return null;
+                }
+
+                if (lastRecord != null && parsePrecision.equals(ParsePrecision.EACH_SECOND) && Duration.between(lastRecord.getDate(), date).getSeconds() < 1) {
+                    continue;
                 }
 
                 FlySightRecord flySightRecord = new FlySightRecord();
@@ -121,7 +128,7 @@ public class FlySightLogParser {
                     break;
                 }
 
-                int newPercentageProgress = (int) ((bytesRead * 100) / fileSize);
+                int newPercentageProgress = (int) ((bytesRead * 100) / fileSize) / (parsePrecision.equals(ParsePrecision.INTELLIGENT) ? 2 : 1);
                 if (newPercentageProgress != percentageProgress) {
                     percentageProgress = newPercentageProgress;
                     if (progressListener != null) {
@@ -132,7 +139,37 @@ public class FlySightLogParser {
         } catch (Exception e) {
             return null;
         }
-        return new FlySightLog(records);
+
+        FlySightLog flySightLog = new FlySightLog(records);
+
+        if (parsePrecision.equals(ParsePrecision.INTELLIGENT) && flySightLog.getExit() != null && flySightLog.getOpening() != null) {
+
+            Map.Entry<OffsetDateTime, FlySightRecord> lastEntry = null;
+
+            int totalRecords = flySightLog.getRecords().size();
+            int i = 0;
+
+            Iterator<Map.Entry<OffsetDateTime, FlySightRecord>> iterator = flySightLog.getRecords().entrySet().iterator();
+            while (iterator.hasNext()) {
+                i++;
+                int newPercentageProgress = 50 + ((i * 100) / totalRecords / 2);
+                if (newPercentageProgress != percentageProgress) {
+                    percentageProgress = newPercentageProgress;
+                    if (progressListener != null) {
+                        progressListener.onProgress(percentageProgress);
+                    }
+                }
+                Map.Entry<OffsetDateTime, FlySightRecord> entry = iterator.next();
+                if (lastEntry != null
+                        && (entry.getKey().isBefore(flySightLog.getExit().getDate()) || entry.getKey().isAfter(flySightLog.getOpening().getDate()))
+                        && Duration.between(lastEntry.getKey(), entry.getKey()).getSeconds() < 1) {
+                    iterator.remove();
+                    continue;
+                }
+                lastEntry = entry;
+            }
+        }
+        return flySightLog;
     }
 
     private static Map<FlySightDataType, Integer> getColumnMapping(String headline) {
