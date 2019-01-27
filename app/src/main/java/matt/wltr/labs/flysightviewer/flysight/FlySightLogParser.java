@@ -146,6 +146,9 @@ public class FlySightLogParser {
 
             Map.Entry<OffsetDateTime, FlySightRecord> lastEntry = null;
 
+            OffsetDateTime exit = flySightLog.getExit().getDate().minusSeconds(10);
+            OffsetDateTime opening = flySightLog.getOpening().getDate().plusSeconds(30);
+
             int totalRecords = flySightLog.getRecords().size();
             int i = 0;
 
@@ -161,8 +164,8 @@ public class FlySightLogParser {
                 }
                 Map.Entry<OffsetDateTime, FlySightRecord> entry = iterator.next();
                 if (lastEntry != null
-                        && (entry.getKey().isBefore(flySightLog.getExit().getDate()) || entry.getKey().isAfter(flySightLog.getOpening().getDate()))
-                        && Duration.between(lastEntry.getKey(), entry.getKey()).getSeconds() < 1) {
+                        && (entry.getKey().isBefore(exit) || entry.getKey().isAfter(opening))
+                        && Duration.between(lastEntry.getKey(), entry.getKey()).getSeconds() < 3) {
                     iterator.remove();
                     continue;
                 }
