@@ -18,14 +18,14 @@ import com.jakewharton.threetenabp.AndroidThreeTen;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import labs.wltr.matt.flysightviewer.R;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata;
-import matt.wltr.labs.flysightviewer.flysight.FlySightLogSettings;
-import matt.wltr.labs.flysightviewer.flysight.FlySightLogbookImportObserver;
+import matt.wltr.labs.flysightviewer.flysight.FlySightLogRepository;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLogbookImportTask;
 
 public class LogbookActivity extends AppCompatActivity {
@@ -43,9 +43,7 @@ public class LogbookActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
         AndroidThreeTen.init(this);
-
         setContentView(R.layout.activity_logbook);
         ButterKnife.bind(this);
 
@@ -59,17 +57,8 @@ public class LogbookActivity extends AppCompatActivity {
 
     private void refreshLogbook() {
         logbook.clear();
-        File directory = FlySightLogSettings.getLogDirectory(this);
-        for (File file : directory.listFiles()) {
-            if (!file.getName().endsWith(FlySightLogSettings.METADATA_FILE_EXTENSION)) {
-                File metadataFile = new File(file.getAbsolutePath() + FlySightLogSettings.METADATA_FILE_EXTENSION);
-                if (metadataFile.exists()) {
-                    FlySightLogMetadata flySightLogMetadata = FlySightLogMetadata.read(metadataFile);
-                    if (flySightLogMetadata != null) {
-                        logbook.add(new LogbookListEntry(Uri.fromFile(file), Uri.fromFile(metadataFile), flySightLogMetadata));
-                    }
-                }
-            }
+        for (FlySightLogMetadata flySightLogMetadata : FlySightLogRepository.getAllFlySightLogMetadata(this)) {
+            logbook.add(new LogbookListEntry(flySightLogMetadata));
         }
         Collections.sort(logbook, (first, second) -> second.getFlySightLogMetadata().getUtcDate().compareTo(first.getFlySightLogMetadata().getUtcDate()));
         logbookAdapter.notifyDataSetChanged();
@@ -113,29 +102,19 @@ public class LogbookActivity extends AppCompatActivity {
         }
     }
 
-    @Deprecated
-    private void onFileChosen(@NonNull Uri uri) {
-
-        Intent intent = new Intent(this, LogActivity.class);
-
-        Bundle bundle = new Bundle();
-        bundle.putString(LogActivity.FLY_SIGHT_LOG_URI_INTENT_KEY, uri.toString());
-        intent.putExtras(bundle);
-
-        startActivity(intent);
-    }
-
     private void onFolderChosen(@NonNull Uri uri) {
-
         FlySightLogbookImportTask flySightLogbookImportTask = new FlySightLogbookImportTask(this);
         flySightLogbookImportTask.setFlySightLogbookImportObserver(
-                new FlySightLogbookImportObserver() {
-                    @Override
-                    public void onFlySightLogbookImported() {
-                        refreshLogbook();
-                        Toast.makeText(getApplicationContext(), "finished sync", Toast.LENGTH_LONG).show();
-                    }
+                () -> {
+                    refreshLogbook();
+                    Toast.makeText(getApplicationContext(), "Import complete", Toast.LENGTH_LONG).show();
                 });
         flySightLogbookImportTask.execute(uri);
+    }
+
+    @Override
+    protected void onResume() {
+        refreshLogbook();
+        super.onResume();
     }
 }

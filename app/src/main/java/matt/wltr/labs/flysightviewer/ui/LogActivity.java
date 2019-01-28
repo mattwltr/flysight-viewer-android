@@ -7,7 +7,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,15 +23,19 @@ import com.scichart.extensions.builders.SciChartBuilder;
 
 import org.threeten.bp.format.DateTimeFormatter;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import labs.wltr.matt.flysightviewer.R;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLog;
+import matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLogParseObserver;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLogParseTask;
+import matt.wltr.labs.flysightviewer.flysight.FlySightLogRepository;
 import matt.wltr.labs.flysightviewer.flysight.FlySightRecord;
 import matt.wltr.labs.flysightviewer.ui.logview.DistanceView;
 import matt.wltr.labs.flysightviewer.ui.logview.DiveAngleView;
@@ -42,6 +48,7 @@ import matt.wltr.labs.flysightviewer.ui.logview.topview.TopView;
 
 public class LogActivity extends AppCompatActivity {
 
+    public static final String FLY_SIGHT_LOG_METADATA_INTENT_KEY = "matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata";
     public static final String FLY_SIGHT_LOG_URI_INTENT_KEY = "matt.wltr.labs.flysightviewer.flysight.FlySightLog";
 
     private static final String BUNDLE_KEY_FLY_SIGHT_LOG = "matt.wltr.labs.flysightviewer.linechart.ui.LogActivity.flySightLog";
@@ -85,32 +92,35 @@ public class LogActivity extends AppCompatActivity {
 
     private boolean viewLocked = false;
 
+    private FlySightLogMetadata flySightLogMetadata;
     private FlySightLog flySightLog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
         AndroidThreeTen.init(this);
-
         setTitle(getString(R.string.loading));
         setupSciChart(this);
-
         setContentView(R.layout.activity_log);
-
         ButterKnife.bind(this);
 
-        loader.setVisibility(View.VISIBLE);
         loaderProgressBar.setProgress(0);
+        loaderProgressLabel.setText("0");
+        loader.setVisibility(View.VISIBLE);
 
-        String flySightLogUri = getIntent().getStringExtra(FLY_SIGHT_LOG_URI_INTENT_KEY);
-        if (flySightLogUri == null) {
+        flySightLogMetadata = (FlySightLogMetadata) getIntent().getSerializableExtra(FLY_SIGHT_LOG_METADATA_INTENT_KEY);
+        if (flySightLogMetadata == null) {
             return;
         }
+        File flySightLogFile = FlySightLogRepository.getLogFile(this, flySightLogMetadata);
+        if (!flySightLogFile.exists()) {
+            return;
+        }
+
         FileInputStream inputStream;
         try {
-            inputStream = (FileInputStream) getContentResolver().openInputStream(Uri.parse(flySightLogUri));
+            inputStream = (FileInputStream) getContentResolver().openInputStream(Uri.fromFile(flySightLogFile));
         } catch (FileNotFoundException e) {
             return;
         }
@@ -177,15 +187,19 @@ public class LogActivity extends AppCompatActivity {
         lineChartView.disableRolloverLine();
     }
 
+    private void navigateBack() {
+        Intent intent = NavUtils.getParentActivityIntent(LogActivity.this);
+        if (intent != null) {
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            NavUtils.navigateUpTo(LogActivity.this, intent);
+        }
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case android.R.id.home:
-                Intent intent = NavUtils.getParentActivityIntent(this);
-                if (intent != null) {
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    NavUtils.navigateUpTo(this, intent);
-                }
+                navigateBack();
                 return true;
             case R.id.log_menu_zoom_out:
                 if (viewLocked && lineChartView.isRolloverModifierEnabled()) {
@@ -204,13 +218,30 @@ public class LogActivity extends AppCompatActivity {
                 lineChartView.showDateRange(flySightLog.getExit().getDate(), flySightLog.getOpening().getDate());
                 lockView(logMenu.findItem(R.id.log_menu_chart_mode));
                 return true;
+            case R.id.log_menu_delete:
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.log_delete_confirmation_title))
+                        .setMessage(getString(R.string.log_delete_confirmation_description))
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setPositiveButton(
+                                android.R.string.yes,
+                                (dialog, whichButton) -> {
+                                    try {
+                                        FlySightLogRepository.deleteLogFile(LogActivity.this, flySightLogMetadata);
+                                        navigateBack();
+                                    } catch (IOException e) {
+                                        Log.e(LogActivity.class.getSimpleName(), "Could not save metadata", e);
+                                    }
+                                })
+                        .setNegativeButton(android.R.string.no, null)
+                        .show();
+                return true;
             default:
                 return super.onOptionsItemSelected(menuItem);
         }
     }
 
     private void initializeCharts() {
-
         lineChartView.initialize(flySightLog);
         lineChartView.setVisibleDateRangeChangeListener(
                 (newMin, newMax) -> {
@@ -248,6 +279,7 @@ public class LogActivity extends AppCompatActivity {
                         setTitle(getString(R.string.utc_date_format, DATE_TIME_FORMAT.format(flySightLog.getRecords().keySet().iterator().next())));
 
                         logMenu.findItem(R.id.log_menu_zoom_out).setVisible(true);
+                        logMenu.findItem(R.id.log_menu_delete).setVisible(true);
 
                         MenuItem chartModeMenuItem = logMenu.findItem(R.id.log_menu_chart_mode);
                         chartModeMenuItem.setVisible(true);

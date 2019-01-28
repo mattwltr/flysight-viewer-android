@@ -70,11 +70,9 @@ public class LogbookAdapter extends RecyclerView.Adapter<LogbookAdapter.LogbookE
                 .setOnClickListener(
                         view -> {
                             Intent intent = new Intent(view.getContext(), LogActivity.class);
-
                             Bundle bundle = new Bundle();
-                            bundle.putString(LogActivity.FLY_SIGHT_LOG_URI_INTENT_KEY, logbookListEntry.getLogUri().toString());
+                            bundle.putSerializable(LogActivity.FLY_SIGHT_LOG_METADATA_INTENT_KEY, logbookListEntry.getFlySightLogMetadata());
                             intent.putExtras(bundle);
-
                             view.getContext().startActivity(intent);
                         });
     }

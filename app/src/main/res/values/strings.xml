@@ -3,11 +3,16 @@
     <string name="app_name">FlySight Viewer</string>
     <string name="title_with_file_name">FlySight Viewer: %s</string>
     <string name="main_menu_choose_folder">Choose folder</string>
+    <string name="loading">Loading...</string>
+    <string name="utc_date_format">%s UTC</string>
+
+    <!-- log -->
     <string name="log_menu_zoom">Zoom out</string>
     <string name="log_menu_chart_mode">Mode</string>
     <string name="log_menu_skydive">Skydive</string>
-    <string name="loading">Loading...</string>
-    <string name="utc_date_format">%s UTC</string>
+    <string name="log_menu_delete">Delete</string>
+    <string name="log_delete_confirmation_title">Delete</string>
+    <string name="log_delete_confirmation_description">Do you really want to delete this log?</string>
 
     <!-- data -->
     <string name="elevation">Elevation</string>
