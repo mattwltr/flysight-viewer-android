@@ -3,6 +3,11 @@
 
     <dimen name="top_view_chart_size">140dp</dimen>
 
+    <dimen name="default_space">20dp</dimen>
+
+    <dimen name="font_size_default">14sp</dimen>
+    <dimen name="font_size_small">11sp</dimen>
+
     <!-- Icon Value Group -->
     <dimen name="icon_value_text_padding">15dp</dimen>
     <dimen name="icon_value_label_font_size">10sp</dimen>

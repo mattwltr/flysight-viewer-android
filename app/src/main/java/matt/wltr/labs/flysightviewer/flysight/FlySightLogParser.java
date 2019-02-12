@@ -83,7 +83,7 @@ public class FlySightLogParser {
                 FlySightRecord flySightRecord = new FlySightRecord();
                 flySightRecord.setDate(date);
                 flySightRecord.setLat(Double.parseDouble(columns[columnMapping.get(FlySightDataType.LATITUDE)]));
-                flySightRecord.setLng(Double.parseDouble(columns[columnMapping.get(FlySightDataType.LONGITUDE)]));
+                flySightRecord.setLon(Double.parseDouble(columns[columnMapping.get(FlySightDataType.LONGITUDE)]));
                 flySightRecord.setElevation(Double.parseDouble(columns[columnMapping.get(FlySightDataType.ELEVATION)]));
                 flySightRecord.setVelocityNorth(Double.parseDouble(columns[columnMapping.get(FlySightDataType.VELOCITY_NORTH)]));
                 flySightRecord.setVelocityEast(Double.parseDouble(columns[columnMapping.get(FlySightDataType.VELOCITY_EAST)]));
@@ -115,7 +115,7 @@ public class FlySightLogParser {
                     flySightRecord.setDistance(0D);
                 } else {
                     flySightRecord.setDistance(
-                            lastRecord.getDistance() + calculateDistance(lastRecord.getLat(), lastRecord.getLng(), flySightRecord.getLat(), flySightRecord.getLng()));
+                            lastRecord.getDistance() + calculateDistance(lastRecord.getLat(), lastRecord.getLon(), flySightRecord.getLat(), flySightRecord.getLon()));
                 }
 
                 flySightRecord.calculateAdditionalValues();
@@ -232,12 +232,12 @@ public class FlySightLogParser {
         return columnMapping;
     }
 
-    private static double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+    private static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         double latDifference = Math.toRadians(lat2 - lat1);
-        double lngDifference = Math.toRadians(lng2 - lng1);
+        double lonDifference = Math.toRadians(lon2 - lon1);
         double a =
                 Math.sin(latDifference / 2) * Math.sin(latDifference / 2)
-                        + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.sin(lngDifference / 2) * Math.sin(lngDifference / 2);
+                        + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.sin(lonDifference / 2) * Math.sin(lonDifference / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return SphericalMercator.EARTH_RADIUS_IN_METER * c;
     }

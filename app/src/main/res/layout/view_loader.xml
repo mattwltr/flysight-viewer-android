@@ -3,15 +3,15 @@
     android:id="@+id/loader"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="20dp"
+    android:layout_margin="@dimen/default_space"
     android:visibility="gone"
     android:layout_gravity="center">
 
     <ProgressBar
         android:id="@+id/loader_progress"
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
+        android:layout_width="175dp"
+        android:layout_height="175dp"
         android:layout_centerInParent="true"
         android:background="@drawable/circle_shape"
         android:progressDrawable="@drawable/circular_progress_bar" />
@@ -28,7 +28,5 @@
             android:textAlignment="center" />
 
     </RelativeLayout>
-
-
 
 </RelativeLayout>

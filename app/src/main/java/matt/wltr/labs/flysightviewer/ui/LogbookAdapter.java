@@ -9,8 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.threeten.bp.format.DateTimeFormatter;
-
 import java.util.List;
 
 import butterknife.BindView;
@@ -20,30 +18,40 @@ import matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata;
 
 public class LogbookAdapter extends RecyclerView.Adapter<LogbookAdapter.LogbookEntryViewHolder> {
 
-    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    static class LogbookEntryViewHolder extends RecyclerView.ViewHolder {
 
-    public static class LogbookEntryViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.logbook_entry_title)
+        TextView titleView;
 
-        @BindView(R.id.logbook_entry_label)
-        TextView textView;
+        @BindView(R.id.logbook_entry_description)
+        TextView descriptionView;
 
-        public LogbookEntryViewHolder(View view) {
+        LogbookEntryViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
         }
 
-        public void setLabel(String label) {
-            textView.setText(label);
+        void setTitle(String title) {
+            titleView.setText(title);
         }
 
-        public View getItemView() {
+        void setDescription(String description) {
+            if (description != null && !description.trim().isEmpty()) {
+                descriptionView.setText(description);
+                descriptionView.setVisibility(View.VISIBLE);
+            } else {
+                descriptionView.setVisibility(View.GONE);
+            }
+        }
+
+        View getItemView() {
             return itemView;
         }
     }
 
     private List<LogbookListEntry> logFilePaths;
 
-    public LogbookAdapter(List<LogbookListEntry> logFilePaths) {
+    LogbookAdapter(List<LogbookListEntry> logFilePaths) {
         this.logFilePaths = logFilePaths;
     }
 
@@ -61,10 +69,8 @@ public class LogbookAdapter extends RecyclerView.Adapter<LogbookAdapter.LogbookE
 
         FlySightLogMetadata flySightLogMetadata = logbookListEntry.getFlySightLogMetadata();
 
-        String formattedDate =
-                logbookEntryViewHolder.getItemView().getResources().getString(R.string.utc_date_format, DATE_TIME_FORMAT.format(flySightLogMetadata.getUtcDate()));
-        logbookEntryViewHolder.setLabel(formattedDate);
-
+        logbookEntryViewHolder.setTitle(flySightLogMetadata.getFormattedDateTime());
+        logbookEntryViewHolder.setDescription(flySightLogMetadata.getDescription());
         logbookEntryViewHolder
                 .getItemView()
                 .setOnClickListener(

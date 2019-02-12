@@ -74,7 +74,6 @@ public class TopView extends SciChartSurface {
                                     .withStrokeStyle(color, 1f, true)
                                     .build());
                     Collections.addAll(getAnnotations(), topViewChartMarker);
-                    getChartModifiers().add(sciChartBuilder.newModifierGroupWithDefaultModifiers().build());
                 });
 
         FlySightRecord firstFlySightRecord = flySightLog.getRecords().entrySet().iterator().next().getValue();

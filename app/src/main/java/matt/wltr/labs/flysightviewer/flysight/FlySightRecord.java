@@ -18,7 +18,7 @@ public class FlySightRecord implements Serializable {
     private Double lat;
 
     /** longitude (deg) */
-    private Double lng;
+    private Double lon;
 
     /** height above mean sea level (m) */
     private Double elevation;
@@ -101,7 +101,7 @@ public class FlySightRecord implements Serializable {
             this.speedDown = speedDown;
             speedUp = 0D;
         }
-        x = SphericalMercator.lngToX(lng);
+        x = SphericalMercator.lonToX(lon);
         y = SphericalMercator.latToY(lat);
         diveAngle = Math.atan2(velocityDown, Math.sqrt(velocityEast * velocityEast + velocityNorth * velocityNorth)) / Math.PI * 180;
     }
@@ -165,12 +165,12 @@ public class FlySightRecord implements Serializable {
         this.lat = lat;
     }
 
-    public Double getLng() {
-        return lng;
+    public Double getLon() {
+        return lon;
     }
 
-    void setLng(Double lng) {
-        this.lng = lng;
+    void setLon(Double lon) {
+        this.lon = lon;
     }
 
     public Double getElevation() {

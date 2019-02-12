@@ -20,6 +20,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public abstract class FlySightLogRepository {
@@ -100,6 +101,19 @@ public abstract class FlySightLogRepository {
             }
         }
         return metadataFiles;
+    }
+
+    @NonNull
+    public static List<FlySightLogMetadata> getFlySightLogMetadataByLatLonAndNoZoneId(@NonNull Context context, LatLon latLon, int radiusInMeter) {
+        List<FlySightLogMetadata> flySightLogMetadataList = getAllFlySightLogMetadata(context);
+        Iterator<FlySightLogMetadata> flySightLogMetadataIterator = flySightLogMetadataList.iterator();
+        while (flySightLogMetadataIterator.hasNext()) {
+            FlySightLogMetadata flySightLogMetadata = flySightLogMetadataIterator.next();
+            if (SphericalMercator.distanceBetween(flySightLogMetadata.getLatLon(), latLon) > radiusInMeter || flySightLogMetadata.getZoneId() != null) {
+                flySightLogMetadataIterator.remove();
+            }
+        }
+        return flySightLogMetadataList;
     }
 
     private static boolean logFileExists(File metadataFile) {

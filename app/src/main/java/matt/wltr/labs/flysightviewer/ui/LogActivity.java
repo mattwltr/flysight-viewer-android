@@ -9,24 +9,36 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.scichart.extensions.builders.SciChartBuilder;
 
-import org.threeten.bp.format.DateTimeFormatter;
+import org.threeten.bp.ZoneId;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.TimeZone;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -49,12 +61,9 @@ import matt.wltr.labs.flysightviewer.ui.logview.topview.TopView;
 public class LogActivity extends AppCompatActivity {
 
     public static final String FLY_SIGHT_LOG_METADATA_INTENT_KEY = "matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata";
-    public static final String FLY_SIGHT_LOG_URI_INTENT_KEY = "matt.wltr.labs.flysightviewer.flysight.FlySightLog";
 
     private static final String BUNDLE_KEY_FLY_SIGHT_LOG = "matt.wltr.labs.flysightviewer.linechart.ui.LogActivity.flySightLog";
     private static final String BUNDLE_KEY_VIEW_LOCKED = "matt.wltr.labs.flysightviewer.linechart.ui.LogActivity.viewLocked";
-
-    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @BindView(R.id.loader)
     RelativeLayout loader;
@@ -144,7 +153,7 @@ public class LogActivity extends AppCompatActivity {
                                 }
                                 flySightLog = parsedFlySightLog;
                                 if (logMenu != null) {
-                                    initializeCharts();
+                                    initializeViews();
                                 }
                             }
                         })
@@ -168,7 +177,7 @@ public class LogActivity extends AppCompatActivity {
         logMenu = menu;
         getMenuInflater().inflate(R.menu.log_menu, menu);
         if (flySightLog != null) {
-            initializeCharts();
+            initializeViews();
         }
         return true;
     }
@@ -218,31 +227,192 @@ public class LogActivity extends AppCompatActivity {
                 lineChartView.showDateRange(flySightLog.getExit().getDate(), flySightLog.getOpening().getDate());
                 lockView(logMenu.findItem(R.id.log_menu_chart_mode));
                 return true;
+            case R.id.log_menu_description:
+                showDescriptionDialog();
+                return true;
+            case R.id.log_menu_timezone:
+                showTimezoneDialog();
+                return true;
             case R.id.log_menu_delete:
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.log_delete_confirmation_title))
-                        .setMessage(getString(R.string.log_delete_confirmation_description))
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setPositiveButton(
-                                android.R.string.yes,
-                                (dialog, whichButton) -> {
-                                    try {
-                                        FlySightLogRepository.deleteLogFile(LogActivity.this, flySightLogMetadata);
-                                        navigateBack();
-                                    } catch (IOException e) {
-                                        Log.e(LogActivity.class.getSimpleName(), "Could not save metadata", e);
-                                    }
-                                })
-                        .setNegativeButton(android.R.string.no, null)
-                        .show();
+                showDeleteDialog();
                 return true;
             default:
                 return super.onOptionsItemSelected(menuItem);
         }
     }
 
-    private void initializeCharts() {
-        lineChartView.initialize(flySightLog);
+    private void showDescriptionDialog() {
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        final View dialogView = getLayoutInflater().inflate(R.layout.view_description_dialog, null);
+
+        final EditText descriptionView = dialogView.findViewById(R.id.log_description);
+        descriptionView.setText(flySightLogMetadata.getDescription());
+
+        dialogBuilder.setView(dialogView);
+        dialogBuilder.setTitle(getString(R.string.log_menu_description));
+        dialogBuilder.setPositiveButton(
+                android.R.string.yes,
+                (dialog, whichButton) -> {
+                    flySightLogMetadata.setDescription(descriptionView.getText().toString());
+                    try {
+                        FlySightLogRepository.saveMetadata(this, flySightLogMetadata);
+                        setSubtitle(flySightLogMetadata.getDescription());
+                    } catch (IOException e) {
+                        Log.e(LogActivity.class.getSimpleName(), "Could not save metadata", e);
+                    }
+                });
+        dialogBuilder.setNegativeButton(android.R.string.no, null);
+        dialogBuilder.create().show();
+    }
+
+    class TimezoneAdapter extends ArrayAdapter<String> {
+
+        private final List<String> values;
+
+        public TimezoneAdapter(Context context, List<String> values) {
+            super(context, -1, values);
+            this.values = values;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            View rowView = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_timezone_list_item, parent, false);
+
+            TextView textView = rowView.findViewById(R.id.timezone_label);
+            textView.setText(values.get(position));
+
+            RadioButton radioButton = rowView.findViewById(R.id.timezone_radio);
+            radioButton.setChecked(((ListView) parent).getCheckedItemPosition() == position);
+
+            return rowView;
+        }
+    }
+
+    private void showTimezoneDialog() {
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        final View dialogView = getLayoutInflater().inflate(R.layout.view_timezone_dialog, null);
+
+        final List<String> timezones = Arrays.asList(TimeZone.getAvailableIDs());
+        final List<String> visibleTimezones = new ArrayList<>(timezones);
+
+        final TimezoneAdapter timezoneAdapter = new TimezoneAdapter(this, visibleTimezones);
+
+        final ListView listView = dialogView.findViewById(R.id.log_timezones);
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        listView.setAdapter(timezoneAdapter);
+
+        final EditText filterView = dialogView.findViewById(R.id.log_timezone_filter);
+        filterView.addTextChangedListener(
+                new TextWatcher() {
+
+                    final android.os.Handler handler = new Handler();
+                    Runnable runnable;
+
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                        handler.removeCallbacks(runnable);
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                        runnable =
+                                () -> {
+                                    String input = filterView.getText().toString();
+                                    visibleTimezones.clear();
+                                    if (!input.trim().isEmpty()) {
+                                        for (String zoneId : timezones) {
+                                            if (zoneId.toLowerCase().contains(input.toLowerCase())) {
+                                                visibleTimezones.add(zoneId);
+                                            }
+                                        }
+                                    } else {
+                                        visibleTimezones.addAll(timezones);
+                                    }
+                                    timezoneAdapter.notifyDataSetChanged();
+                                    listView.clearChoices();
+                                };
+                        handler.postDelayed(runnable, 500);
+                    }
+                });
+
+        dialogBuilder.setView(dialogView);
+        dialogBuilder.setTitle(getString(R.string.log_menu_timezone));
+        dialogBuilder.setPositiveButton(
+                android.R.string.yes,
+                (dialog, whichButton) -> {
+                    String zoneId = visibleTimezones.get(listView.getCheckedItemPosition());
+                    flySightLogMetadata.setZoneId(ZoneId.of(zoneId));
+                    try {
+                        // save
+                        FlySightLogRepository.saveMetadata(this, flySightLogMetadata);
+
+                        // update view title
+                        setTitle(flySightLogMetadata.getFormattedDateTime());
+
+                        // update x-axis of line chart
+                        lineChartView.showDataWithZoneId(flySightLogMetadata.getZoneId());
+
+                        // check if there're more log at this location
+                        List<FlySightLogMetadata> flySightLogMetadataList =
+                                FlySightLogRepository.getFlySightLogMetadataByLatLonAndNoZoneId(this, flySightLogMetadata.getLatLon(), 20000);
+                        if (!flySightLogMetadataList.isEmpty()) {
+                            showTimezoneDialog(flySightLogMetadataList);
+                        }
+                    } catch (IOException e) {
+                        Log.e(LogActivity.class.getSimpleName(), "Could not save metadata", e);
+                    }
+                });
+        dialogBuilder.setNegativeButton(android.R.string.no, null);
+        dialogBuilder.create().show();
+    }
+
+    private void showTimezoneDialog(List<FlySightLogMetadata> flySightLogMetadataList) {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.log_menu_timezone))
+                .setMessage(getString(R.string.log_menu_timezone_description, flySightLogMetadataList.size(), flySightLogMetadata.getZoneId().toString()))
+                .setPositiveButton(
+                        android.R.string.yes,
+                        (dialog, whichButton) -> {
+                            for (FlySightLogMetadata flySightLogMetadata : flySightLogMetadataList) {
+                                try {
+                                    flySightLogMetadata.setZoneId(this.flySightLogMetadata.getZoneId());
+                                    FlySightLogRepository.saveMetadata(LogActivity.this, flySightLogMetadata);
+                                } catch (IOException e) {
+                                    Log.e(LogActivity.class.getSimpleName(), "Could not save metadata", e);
+                                }
+                            }
+                        })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    private void showDeleteDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.log_delete_confirmation_title))
+                .setMessage(getString(R.string.log_delete_confirmation_description))
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(
+                        android.R.string.yes,
+                        (dialog, whichButton) -> {
+                            try {
+                                FlySightLogRepository.deleteLogFile(LogActivity.this, flySightLogMetadata);
+                                navigateBack();
+                            } catch (IOException e) {
+                                Log.e(LogActivity.class.getSimpleName(), "Could not save metadata", e);
+                            }
+                        })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    private void initializeViews() {
+        lineChartView.initialize(flySightLog, flySightLogMetadata);
         lineChartView.setVisibleDateRangeChangeListener(
                 (newMin, newMax) -> {
                     FlySightRecord flySightRecord = flySightLog.getClosestRecord(newMin);
@@ -276,9 +446,12 @@ public class LogActivity extends AppCompatActivity {
                     @Override
                     public void onFinish() {
 
-                        setTitle(getString(R.string.utc_date_format, DATE_TIME_FORMAT.format(flySightLog.getRecords().keySet().iterator().next())));
+                        setTitle(flySightLogMetadata.getFormattedDateTime());
+                        setSubtitle(flySightLogMetadata.getDescription());
 
                         logMenu.findItem(R.id.log_menu_zoom_out).setVisible(true);
+                        logMenu.findItem(R.id.log_menu_description).setVisible(true);
+                        logMenu.findItem(R.id.log_menu_timezone).setVisible(true);
                         logMenu.findItem(R.id.log_menu_delete).setVisible(true);
 
                         MenuItem chartModeMenuItem = logMenu.findItem(R.id.log_menu_chart_mode);
@@ -294,8 +467,16 @@ public class LogActivity extends AppCompatActivity {
                             skydiveMenuItem.setVisible(true);
                         }
 
+                        loaderProgressBar.setProgress(0);
                         loader.setVisibility(View.GONE);
                         logContainer.setVisibility(View.VISIBLE);
+                        logContainer.setOnClickListener(
+                                view -> {
+                                    if (lineChartView.isRolloverModifierEnabled()) {
+                                        lineChartView.disableRolloverLine();
+                                        lineChartView.enableRolloverLine();
+                                    }
+                                });
 
                         topView.initialize(flySightLog);
 
@@ -306,5 +487,11 @@ public class LogActivity extends AppCompatActivity {
                         diveAngleView.update(firstRecord.getDiveAngle());
                     }
                 });
+    }
+
+    private void setSubtitle(String text) {
+        if (getSupportActionBar() != null && text != null && !text.trim().isEmpty()) {
+            getSupportActionBar().setSubtitle(text);
+        }
     }
 }

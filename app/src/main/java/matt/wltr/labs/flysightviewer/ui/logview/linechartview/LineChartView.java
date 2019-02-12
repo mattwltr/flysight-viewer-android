@@ -6,9 +6,12 @@ import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import com.scichart.charting.model.dataSeries.IXyDataSeries;
 import com.scichart.charting.modifiers.RubberBandXyZoomModifier;
+import com.scichart.charting.numerics.labelProviders.DateLabelProvider;
+import com.scichart.charting.visuals.ChartModifierSurface;
 import com.scichart.charting.visuals.SciChartSurface;
 import com.scichart.charting.visuals.axes.AutoRange;
 import com.scichart.charting.visuals.axes.AxisAlignment;
@@ -26,9 +29,12 @@ import com.scichart.drawing.common.FontStyle;
 import com.scichart.extensions.builders.SciChartBuilder;
 
 import org.threeten.bp.DateTimeUtils;
+import org.threeten.bp.Instant;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZoneOffset;
 import org.threeten.bp.ZonedDateTime;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +47,7 @@ import java.util.Map;
 import labs.wltr.matt.flysightviewer.R;
 import matt.wltr.labs.flysightviewer.flysight.FlySightDataType;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLog;
+import matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata;
 import matt.wltr.labs.flysightviewer.flysight.FlySightRecord;
 import matt.wltr.labs.flysightviewer.flysight.MinMax;
 import matt.wltr.labs.flysightviewer.flysight.Unit;
@@ -72,6 +79,8 @@ public class LineChartView extends SciChartSurface {
 
     private final SciChartBuilder sciChartBuilder = SciChartBuilder.instance();
 
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     private IAxis xAxis;
     private final List<IAxis> yAxes = new ArrayList<>();
     private final List<XyRenderableSeriesBase> xyRenderableSeriesBases = new ArrayList<>();
@@ -83,15 +92,17 @@ public class LineChartView extends SciChartSurface {
     private LineChartInitializeListener lineChartInitializeListener;
 
     FlySightLog flySightLog;
+    FlySightLogMetadata flySightLogMetadata;
 
     public LineChartView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
         setRenderSurface(new RenderSurface(context.getApplicationContext())); // avoid black flickering on initial draw
     }
 
-    public void initialize(@NonNull FlySightLog flySightLog) {
+    public void initialize(@NonNull FlySightLog flySightLog, @NonNull FlySightLogMetadata flySightLogMetadata) {
 
         this.flySightLog = flySightLog;
+        this.flySightLogMetadata = flySightLogMetadata;
 
         initializeXAxis();
         initializeYAxes();
@@ -99,6 +110,7 @@ public class LineChartView extends SciChartSurface {
         UpdateSuspender.using(
                 this,
                 () -> {
+                    setTheme(R.style.LineChart);
                     Collections.addAll(getXAxes(), xAxis);
                     Collections.addAll(getYAxes(), yAxes.toArray(new IAxis[0]));
                     Collections.addAll(getRenderableSeries(), xyRenderableSeriesBases.toArray(new XyRenderableSeriesBase[0]));
@@ -129,13 +141,17 @@ public class LineChartView extends SciChartSurface {
         xAxis =
                 sciChartBuilder
                         .newDateAxis()
-                        .withAxisAlignment(AxisAlignment.Bottom)
+                        .withAxisAlignment(AxisAlignment.Top)
                         .withAxisId(X_AXIS_ID)
                         .withTextColor(xAxisColor)
                         .withTickLabelStyle(new FontStyle(Typeface.MONOSPACE, 12, xAxisColor))
                         .withTextFormatting("HH:mm:ss")
                         .withAxisInfoProvider(new XAxisInfoProvider())
                         .build();
+
+        if (flySightLogMetadata.getZoneId() != null) {
+            setupXAxisLabelProvider(flySightLogMetadata.getZoneId());
+        }
 
         xAxis.setVisibleRangeChangeListener(
                 new VisibleRangeChangeListener() {
@@ -158,22 +174,22 @@ public class LineChartView extends SciChartSurface {
                                 DateTimeUtils.toInstant((Date) newRange.getMin())
                                         .atZone(ZoneId.systemDefault())
                                         .toOffsetDateTime()
-                                        .withOffsetSameLocal(flySightLog.getZoneOffset());
+                                        .withOffsetSameLocal(ZoneOffset.UTC);
                         OffsetDateTime oldMin =
                                 DateTimeUtils.toInstant((Date) oldRange.getMin())
                                         .atZone(ZoneId.systemDefault())
                                         .toOffsetDateTime()
-                                        .withOffsetSameLocal(flySightLog.getZoneOffset());
+                                        .withOffsetSameLocal(ZoneOffset.UTC);
                         OffsetDateTime newMax =
                                 DateTimeUtils.toInstant((Date) newRange.getMax())
                                         .atZone(ZoneId.systemDefault())
                                         .toOffsetDateTime()
-                                        .withOffsetSameLocal(flySightLog.getZoneOffset());
+                                        .withOffsetSameLocal(ZoneOffset.UTC);
                         OffsetDateTime oldMax =
                                 DateTimeUtils.toInstant((Date) oldRange.getMax())
                                         .atZone(ZoneId.systemDefault())
                                         .toOffsetDateTime()
-                                        .withOffsetSameLocal(flySightLog.getZoneOffset());
+                                        .withOffsetSameLocal(ZoneOffset.UTC);
 
                         if (zoomListener != null && hasZoomedIn(newMin, oldMin, newMax, oldMax)) {
                             zoomListener.onZoom(ZoomEvent.ZOOM_IN);
@@ -224,11 +240,11 @@ public class LineChartView extends SciChartSurface {
             IAxis yAxis =
                     sciChartBuilder
                             .newNumericAxis()
-                            .withGrowBy(new DoubleRange(0.1d, 0.1d))
                             .withAxisAlignment(AxisAlignment.Left)
                             .withAxisId(dataType.name())
                             .withTextFormatting("0.#")
                             .withTextColor(color)
+                            .withGrowBy(new DoubleRange(0.1D, 0.05D))
                             .withAxisTitle(getAxisTitle(dataType, dataType.getUnit()))
                             .withAxisTitleStyle(axisFontStyle)
                             .withAutoRangeMode(AutoRange.Always)
@@ -282,7 +298,7 @@ public class LineChartView extends SciChartSurface {
                                                         DateTimeUtils.toInstant(date)
                                                                 .atZone(ZoneId.systemDefault())
                                                                 .toOffsetDateTime()
-                                                                .withOffsetSameLocal(flySightLog.getZoneOffset());
+                                                                .withOffsetSameLocal(ZoneOffset.UTC);
                                                 FlySightRecord flySightRecord = flySightLog.getRecords().get(offsetDateTime);
                                                 if (flySightRecord != null) {
                                                     flySightRecordSelectionListener.onFlySightRecordSelect(flySightRecord);
@@ -292,6 +308,27 @@ public class LineChartView extends SciChartSurface {
                         .withXAxisId(X_AXIS_ID)
                         .withYAxisId(Y_AXIS_ID_POSITION)
                         .build());
+    }
+
+    private void setupXAxisLabelProvider(ZoneId zoneId) {
+        xAxis.setLabelProvider(
+                new DateLabelProvider() {
+                    @Override
+                    public CharSequence formatLabel(Comparable dataValue) {
+                        return DateTimeUtils.toInstant(new Date(((Double) dataValue).longValue()))
+                                .atZone(ZoneId.systemDefault())
+                                .toOffsetDateTime()
+                                .withOffsetSameLocal(ZoneOffset.UTC)
+                                .toZonedDateTime()
+                                .withZoneSameInstant(zoneId)
+                                .format(TIME_FORMAT);
+                    }
+                });
+    }
+
+    public void showDataWithZoneId(ZoneId zoneId) {
+        setupXAxisLabelProvider(zoneId);
+        xAxis.updateAxisMeasurements();
     }
 
     private String getAxisTitle(@NonNull FlySightDataType dataType, @NonNull Unit unit) {
@@ -393,7 +430,6 @@ public class LineChartView extends SciChartSurface {
 
     public void enableRolloverLine() {
         ROLLOVER_MODIFIER.enable();
-        ROLLOVER_MODIFIER.getVerticalLinePaint().setColor(Color.WHITE);
         ROLLOVER_MODIFIER.getVerticalLinePaint().setStrokeWidth(0);
     }
 

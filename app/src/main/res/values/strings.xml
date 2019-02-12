@@ -10,6 +10,10 @@
     <string name="log_menu_zoom">Zoom out</string>
     <string name="log_menu_chart_mode">Mode</string>
     <string name="log_menu_skydive">Skydive</string>
+    <string name="log_menu_description">Edit Description</string>
+    <string name="log_menu_timezone">Set Timezone</string>
+    <string name="log_menu_timezone_hint">Filter Zones</string>
+    <string name="log_menu_timezone_description">There\'re %d other FlySight logs for this location. Would you like to apply timezone %s for these too?</string>
     <string name="log_menu_delete">Delete</string>
     <string name="log_delete_confirmation_title">Delete</string>
     <string name="log_delete_confirmation_description">Do you really want to delete this log?</string>

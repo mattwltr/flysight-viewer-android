@@ -25,8 +25,6 @@ public class FlySightLog implements Serializable {
                     FlySightDataType.GLIDE_RATIO,
                     FlySightDataType.DIVE_ANGLE);
 
-    private ZoneOffset zoneOffset;
-
     private Map<OffsetDateTime, FlySightRecord> records;
 
     /** min values by FlySightDataType */
@@ -41,7 +39,6 @@ public class FlySightLog implements Serializable {
 
     public FlySightLog(@NonNull Map<OffsetDateTime, FlySightRecord> records) {
         this.records = records;
-        zoneOffset = records.keySet().iterator().next().getOffset();
         defineExtrema();
         defineExitAndOpening();
     }
@@ -161,9 +158,5 @@ public class FlySightLog implements Serializable {
 
     public FlySightRecord getOpening() {
         return opening;
-    }
-
-    public ZoneOffset getZoneOffset() {
-        return zoneOffset;
     }
 }

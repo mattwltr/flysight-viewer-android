@@ -24,6 +24,20 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/log_menu_description"
+        android:icon="@drawable/ic_description"
+        android:title="@string/log_menu_description"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/log_menu_timezone"
+        android:icon="@drawable/ic_timezone"
+        android:title="@string/log_menu_timezone"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/log_menu_delete"
         android:icon="@drawable/ic_delete"
         android:title="@string/log_menu_delete"
