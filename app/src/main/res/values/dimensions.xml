@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="top_view_chart_size">140dp</dimen>
+    <dimen name="top_view_chart_size">60pt</dimen>
 
-    <dimen name="default_space">20dp</dimen>
+    <dimen name="space_m">20dp</dimen>
 
-    <dimen name="font_size_default">14sp</dimen>
-    <dimen name="font_size_small">11sp</dimen>
+    <dimen name="font_size_xxl">12pt</dimen>
+    <dimen name="font_size_xl">10pt</dimen>
+    <dimen name="font_size_l">8pt</dimen>
+    <dimen name="font_size_m">6pt</dimen>
+    <dimen name="font_size_s">5.5pt</dimen>
+    <dimen name="font_size_xs">5pt</dimen>
 
     <!-- Icon Value Group -->
-    <dimen name="icon_value_text_padding">15dp</dimen>
-    <dimen name="icon_value_label_font_size">10sp</dimen>
-    <dimen name="icon_value_value_font_size">12sp</dimen>
+    <dimen name="icon_value_text_padding">5pt</dimen>
 
 </resources>

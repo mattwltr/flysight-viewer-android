@@ -31,14 +31,14 @@
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
             android:textColor="@color/text_highlight"
-            android:textSize="@dimen/icon_value_value_font_size" />
+            android:textSize="@dimen/font_size_s" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
             android:text="@string/duration"
-            android:textSize="@dimen/icon_value_label_font_size" />
+            android:textSize="@dimen/font_size_xs" />
 
     </LinearLayout>
 

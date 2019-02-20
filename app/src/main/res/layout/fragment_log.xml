@@ -13,7 +13,7 @@
     <matt.wltr.labs.flysightviewer.ui.logview.linechartview.LineChartView
         android:id="@+id/line_chart"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
 
     <!-- sidebar -->
     <LinearLayout
@@ -24,34 +24,42 @@
         app:layout_maxWidth="@dimen/top_view_chart_size"
         app:layout_minWidth="@dimen/top_view_chart_size">
 
-        <!-- top view -->
-        <matt.wltr.labs.flysightviewer.ui.logview.topview.TopView
-            android:id="@+id/top_view"
+        <com.google.android.flexbox.FlexboxLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/top_view_chart_size"
-            android:layout_marginBottom="10dp"
-            app:layout_maxHeight="@dimen/top_view_chart_size"
-            app:layout_minHeight="@dimen/top_view_chart_size"/>
+            android:layout_height="match_parent"
+            app:flexDirection="column"
+            app:justifyContent="space_between">
 
-        <matt.wltr.labs.flysightviewer.ui.logview.HeadingView
-            android:id="@+id/heading"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <!-- top view -->
+            <matt.wltr.labs.flysightviewer.ui.logview.topview.TopView
+                android:id="@+id/top_view"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/top_view_chart_size"
+                android:layout_marginBottom="10dp"
+                app:layout_maxHeight="@dimen/top_view_chart_size"
+                app:layout_minHeight="@dimen/top_view_chart_size" />
 
-        <matt.wltr.labs.flysightviewer.ui.logview.DiveAngleView
-            android:id="@+id/dive_angle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <matt.wltr.labs.flysightviewer.ui.logview.HeadingView
+                android:id="@+id/heading"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-        <matt.wltr.labs.flysightviewer.ui.logview.DurationView
-            android:id="@+id/duration"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <matt.wltr.labs.flysightviewer.ui.logview.DiveAngleView
+                android:id="@+id/dive_angle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-        <matt.wltr.labs.flysightviewer.ui.logview.DistanceView
-            android:id="@+id/distance"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <matt.wltr.labs.flysightviewer.ui.logview.DurationView
+                android:id="@+id/duration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <matt.wltr.labs.flysightviewer.ui.logview.DistanceView
+                android:id="@+id/distance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.flexbox.FlexboxLayout>
 
     </LinearLayout>
 

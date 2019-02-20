@@ -14,14 +14,14 @@
         android:id="@+id/logbook_entry_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/font_size_default"
+        android:textSize="@dimen/font_size_m"
         android:textColor="@color/text_highlight"/>
 
     <TextView
         android:id="@+id/logbook_entry_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/font_size_small"
+        android:textSize="@dimen/font_size_s"
         android:visibility="gone" />
 
 </LinearLayout>
