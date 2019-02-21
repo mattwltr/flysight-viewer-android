@@ -5,10 +5,11 @@
     android:layout_height="match_parent"
     tools:context="matt.wltr.labs.flysightviewer.ui.LogbookActivity">
 
-    <android.support.v7.widget.RecyclerView
+    <ListView
         android:id="@+id/logbook"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:listSelector="@android:color/transparent"
         android:scrollbars="vertical" />
 
 </LinearLayout>

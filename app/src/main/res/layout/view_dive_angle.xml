@@ -36,14 +36,12 @@
             android:id="@+id/dive_angle_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="monospace"
             android:textColor="@color/text_highlight"
             android:textSize="@dimen/font_size_s" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="monospace"
             android:text="@string/dive_angle"
             android:textSize="@dimen/font_size_xs" />
 

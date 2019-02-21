@@ -11,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.jakewharton.threetenabp.AndroidThreeTen;
@@ -33,11 +34,11 @@ public class LogbookActivity extends AppCompatActivity {
     private static final int OPEN_FOLDER_REQUEST_CODE = 2;
 
     @BindView(R.id.logbook)
-    RecyclerView logbookView;
+    ListView logbookView;
 
     private final List<LogbookListEntry> logbook = new ArrayList<>();
 
-    private final LogbookAdapter logbookAdapter = new LogbookAdapter(logbook);
+    private LogbookAdapter logbookAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +48,8 @@ public class LogbookActivity extends AppCompatActivity {
         setContentView(R.layout.activity_logbook);
         ButterKnife.bind(this);
 
-        logbookView.setHasFixedSize(true);
-        logbookView.setLayoutManager(new LinearLayoutManager(this));
+        logbookAdapter = new LogbookAdapter(this, logbook);
         logbookView.setAdapter(logbookAdapter);
-        logbookView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
         refreshLogbook();
     }

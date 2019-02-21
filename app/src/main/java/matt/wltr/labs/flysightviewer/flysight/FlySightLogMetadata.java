@@ -40,6 +40,10 @@ public class FlySightLogMetadata implements Serializable {
         return flySightLogMetadata;
     }
 
+    public ZonedDateTime getZonedDateTime() {
+        return zoneId != null ? utcDate.toZonedDateTime().withZoneSameInstant(zoneId) : utcDate.toZonedDateTime();
+    }
+
     public String getFormattedDateTime() {
         if (zoneId != null) {
             ZonedDateTime zonedDateTime = utcDate.toZonedDateTime().withZoneSameInstant(zoneId);

@@ -24,11 +24,11 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.scichart.library:core:2.2.2.2424@aar'
-    implementation 'com.scichart.library:data:2.2.2.2424@aar'
-    implementation 'com.scichart.library:drawing:2.2.2.2424@aar'
-    implementation 'com.scichart.library:charting:2.2.2.2424@aar'
-    implementation 'com.scichart.library:extensions:2.2.2.2424@aar'
+    implementation 'com.scichart.library:core:2.2.2.2459@aar'
+    implementation 'com.scichart.library:data:2.2.2.2459@aar'
+    implementation 'com.scichart.library:drawing:2.2.2.2459@aar'
+    implementation 'com.scichart.library:charting:2.2.2.2459@aar'
+    implementation 'com.scichart.library:extensions:2.2.2.2459@aar'
     implementation 'com.android.support:recyclerview-v7:28.0.0'
     implementation 'com.jakewharton:butterknife:8.8.1'
     implementation 'com.jakewharton.threetenabp:threetenabp:1.1.1'

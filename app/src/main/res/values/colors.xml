@@ -8,6 +8,9 @@
     <color name="background">#1C1C1E</color>
     <color name="text_highlight">#FFFFFF</color>
 
+    <!-- logbook -->
+    <color name="group_title">#49494B</color>
+
     <!-- line charts -->
     <color name="main_chart_x_axis">#FFFFFF</color>
     <color name="main_chart_x_axis_tooltip_background">#1C1C1E</color>

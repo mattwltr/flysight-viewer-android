@@ -1,17 +1,14 @@
 package matt.wltr.labs.flysightviewer.ui.logview.linechartview;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.RelativeLayout;
 
 import com.scichart.charting.model.dataSeries.IXyDataSeries;
 import com.scichart.charting.modifiers.RubberBandXyZoomModifier;
 import com.scichart.charting.numerics.labelProviders.DateLabelProvider;
-import com.scichart.charting.visuals.ChartModifierSurface;
 import com.scichart.charting.visuals.SciChartSurface;
 import com.scichart.charting.visuals.axes.AutoRange;
 import com.scichart.charting.visuals.axes.AxisAlignment;
@@ -29,7 +26,6 @@ import com.scichart.drawing.common.FontStyle;
 import com.scichart.extensions.builders.SciChartBuilder;
 
 import org.threeten.bp.DateTimeUtils;
-import org.threeten.bp.Instant;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZoneOffset;
@@ -144,7 +140,7 @@ public class LineChartView extends SciChartSurface {
                         .withAxisAlignment(AxisAlignment.Top)
                         .withAxisId(X_AXIS_ID)
                         .withTextColor(xAxisColor)
-                        .withTickLabelStyle(new FontStyle(Typeface.MONOSPACE, 12, xAxisColor))
+                        .withTickLabelStyle(new AntialiasedFontStyle(Typeface.DEFAULT, 14, xAxisColor))
                         .withTextFormatting("HH:mm:ss")
                         .withAxisInfoProvider(new XAxisInfoProvider())
                         .build();
@@ -235,7 +231,7 @@ public class LineChartView extends SciChartSurface {
                             .withDrawLineMode(LineDrawMode.Gaps)
                             .build());
 
-            FontStyle axisFontStyle = new FontStyle(Typeface.MONOSPACE, 12, color);
+            FontStyle axisFontStyle = new AntialiasedFontStyle(Typeface.DEFAULT, 14, color);
 
             IAxis yAxis =
                     sciChartBuilder
@@ -315,6 +311,9 @@ public class LineChartView extends SciChartSurface {
                 new DateLabelProvider() {
                     @Override
                     public CharSequence formatLabel(Comparable dataValue) {
+
+
+
                         return DateTimeUtils.toInstant(new Date(((Double) dataValue).longValue()))
                                 .atZone(ZoneId.systemDefault())
                                 .toOffsetDateTime()

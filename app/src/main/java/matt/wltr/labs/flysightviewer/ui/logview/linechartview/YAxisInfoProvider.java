@@ -55,8 +55,8 @@ class YAxisInfoProvider extends DefaultXySeriesInfoProvider {
 
             setTooltipBackgroundColor(ColorUtil.argb(color, BACKGROUND_OPACITY));
             setTooltipTextColor(ColorUtil.White);
-            setTypeface(Typeface.MONOSPACE);
-            setTextSize(11);
+            setTypeface(Typeface.DEFAULT);
+            setTextSize(14);
             setTextAlignment(TEXT_ALIGNMENT_TEXT_END);
         }
 
