@@ -3,8 +3,9 @@ package matt.wltr.labs.flysightviewer.flysight;
 import android.os.AsyncTask;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 
-public class FlySightLogParseTask extends AsyncTask<FileInputStream, Integer, FlySightLog> {
+public class FlySightLogParseTask extends AsyncTask<InputStream, Integer, FlySightLog> {
 
     private FlySightLogParseObserver flySightLogParseObserver;
 
@@ -13,7 +14,7 @@ public class FlySightLogParseTask extends AsyncTask<FileInputStream, Integer, Fl
     }
 
     @Override
-    protected FlySightLog doInBackground(FileInputStream... inputStreams) {
+    protected FlySightLog doInBackground(InputStream... inputStreams) {
         return FlySightLogParser.parse(inputStreams[0], ParseMode.ALL, ParsePrecision.INTELLIGENT, percentage -> flySightLogParseObserver.onProgress(percentage));
     }
 

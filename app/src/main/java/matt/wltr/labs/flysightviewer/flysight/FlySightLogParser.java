@@ -7,6 +7,7 @@ import org.threeten.bp.OffsetDateTime;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -16,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import matt.wltr.labs.flysightviewer.GZIPInputStream;
 import matt.wltr.labs.flysightviewer.ui.ProgressListener;
 
 public class FlySightLogParser {
@@ -30,12 +32,11 @@ public class FlySightLogParser {
                     FlySightDataType.VELOCITY_EAST,
                     FlySightDataType.VELOCITY_DOWN);
 
-    public static FlySightLog parse(@NonNull FileInputStream inputStream, @NonNull ParseMode parseMode) {
+    public static FlySightLog parse(@NonNull InputStream inputStream, @NonNull ParseMode parseMode) {
         return parse(inputStream, parseMode, ParsePrecision.ALL, null);
     }
 
-    public static FlySightLog parse(
-            @NonNull FileInputStream inputStream, @NonNull ParseMode parseMode, ParsePrecision parsePrecision, ProgressListener progressListener) {
+    public static FlySightLog parse(@NonNull InputStream inputStream, @NonNull ParseMode parseMode, ParsePrecision parsePrecision, ProgressListener progressListener) {
 
         Map<OffsetDateTime, FlySightRecord> records = new LinkedHashMap<>();
 
@@ -43,7 +44,12 @@ public class FlySightLogParser {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
-            long fileSize = inputStream.getChannel().size();
+            long fileSize = 524288; // set to 500 KB
+            if (inputStream instanceof FileInputStream) {
+                fileSize = ((FileInputStream) inputStream).getChannel().size();
+            } else if (inputStream instanceof GZIPInputStream) {
+                fileSize = ((GZIPInputStream) inputStream).getCompressedLength() / 20 * 100; // guessed compression rate of 20%
+            }
             long bytesRead = 0;
             int lineBreakLength = 2;
 

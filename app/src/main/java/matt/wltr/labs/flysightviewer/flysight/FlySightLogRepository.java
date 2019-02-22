@@ -5,34 +5,40 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 public abstract class FlySightLogRepository {
 
     private static final int BUFFER_SIZE = 1024 * 2;
 
     private static final String LOG_DIRECTORY = "logs";
-    private static final String LOG_FILE_NAME = "%s.csv";
+    private static final String RAW_LOG_FILE_NAME = "%s.csv.gz";
     private static final String METADATA_FILE_EXTENSION = ".metadata";
-    private static final String METADATA_FILE_NAME = LOG_FILE_NAME + METADATA_FILE_EXTENSION;
+    private static final String METADATA_FILE_NAME = RAW_LOG_FILE_NAME + METADATA_FILE_EXTENSION;
 
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+
+    private static final Gson GSON = new Gson();
 
     @NonNull
     public static File getLogFile(@NonNull Context context, FlySightLogMetadata flySightLogMetadata) {
@@ -60,7 +66,7 @@ public abstract class FlySightLogRepository {
 
     @NonNull
     private static String getLogFileName(OffsetDateTime date) {
-        return String.format(LOG_FILE_NAME, DATE_TIME_FORMAT.format(date));
+        return String.format(RAW_LOG_FILE_NAME, DATE_TIME_FORMAT.format(date));
     }
 
     static boolean metadataFileExists(@NonNull Context context, OffsetDateTime utcDateTime) {
@@ -77,13 +83,11 @@ public abstract class FlySightLogRepository {
         List<FlySightLogMetadata> flySightLogMetadataList = new ArrayList<>();
         for (File metadataFile : getAllMetadataFiles(context)) {
             try {
-                FileInputStream fileInputStream = new FileInputStream(metadataFile);
-                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-                FlySightLogMetadata flySightLogMetadata = (FlySightLogMetadata) objectInputStream.readObject();
+                JsonReader reader = new JsonReader(new FileReader(metadataFile));
+                FlySightLogMetadata flySightLogMetadata = GSON.fromJson(reader, FlySightLogMetadata.class);
                 if (!flySightLogMetadata.isDeleted()) {
                     flySightLogMetadataList.add(flySightLogMetadata);
                 }
-                objectInputStream.close();
             } catch (Exception e) {
                 Log.e(FlySightLogMetadata.class.getSimpleName(), String.format("Could not read FlySightLogMetadata from file %s", metadataFile.toString()), e);
             }
@@ -127,10 +131,9 @@ public abstract class FlySightLogRepository {
 
     public static void saveMetadata(@NonNull Context context, @NonNull FlySightLogMetadata flySightLogMetadata) throws IOException {
         File file = getMetadataFile(context, flySightLogMetadata.getUtcDate());
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-        objectOutputStream.writeObject(flySightLogMetadata);
-        objectOutputStream.close();
+        try (Writer writer = new FileWriter(file)) {
+            GSON.toJson(flySightLogMetadata, writer);
+        }
     }
 
     public static void deleteLogFile(@NonNull Context context, @NonNull FlySightLogMetadata flySightLogMetadata) throws IOException {
@@ -141,9 +144,9 @@ public abstract class FlySightLogRepository {
         writer.close();
     }
 
-    static void copyLogFile(Context context, Uri source, File file) throws Exception {
-        FileOutputStream fileOutputStream = new FileOutputStream(file, false);
-        copy(context.getContentResolver().openInputStream(source), fileOutputStream);
+    static void copyLogFile(Context context, Uri source, File targetFile) throws Exception {
+        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(targetFile, false));
+        copy(context.getContentResolver().openInputStream(source), gzipOutputStream);
     }
 
     private static void copy(InputStream inputStream, OutputStream outputStream) throws Exception {

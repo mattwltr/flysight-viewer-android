@@ -67,6 +67,10 @@ public class FlySightLog implements Serializable {
         }
     }
 
+    public FlySightRecord getFirstRecord() {
+        return records.entrySet().iterator().next().getValue();
+    }
+
     public Map<OffsetDateTime, FlySightRecord> getRecords(OffsetDateTime min, OffsetDateTime max) {
 
         if (this.records == null) {

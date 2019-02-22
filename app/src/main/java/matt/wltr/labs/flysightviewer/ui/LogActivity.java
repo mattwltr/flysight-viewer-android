@@ -33,7 +33,6 @@ import org.threeten.bp.ZoneId;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +42,7 @@ import java.util.TimeZone;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import labs.wltr.matt.flysightviewer.R;
+import matt.wltr.labs.flysightviewer.GZIPInputStream;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLog;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLogParseObserver;
@@ -102,6 +102,7 @@ public class LogActivity extends AppCompatActivity {
     private boolean viewLocked = false;
 
     private FlySightLogMetadata flySightLogMetadata;
+
     private FlySightLog flySightLog;
 
     @Override
@@ -127,10 +128,13 @@ public class LogActivity extends AppCompatActivity {
             return;
         }
 
-        FileInputStream inputStream;
+        GZIPInputStream inputStream;
         try {
-            inputStream = (FileInputStream) getContentResolver().openInputStream(Uri.fromFile(flySightLogFile));
-        } catch (FileNotFoundException e) {
+            inputStream =
+                    new GZIPInputStream(
+                            getContentResolver().openInputStream(Uri.fromFile(flySightLogFile)),
+                            ((FileInputStream) getContentResolver().openInputStream(Uri.fromFile(flySightLogFile))).getChannel().size());
+        } catch (IOException e) {
             return;
         }
 
@@ -480,7 +484,7 @@ public class LogActivity extends AppCompatActivity {
 
                         topView.initialize(flySightLog);
 
-                        FlySightRecord firstRecord = flySightLog.getRecords().entrySet().iterator().next().getValue();
+                        FlySightRecord firstRecord = flySightLog.getFirstRecord();
                         durationView.initializeRange(firstRecord.getDate(), firstRecord.getDate());
                         distanceView.initializeRange(firstRecord.getDistance(), firstRecord.getDistance());
                         headingView.update(firstRecord.getHeading());

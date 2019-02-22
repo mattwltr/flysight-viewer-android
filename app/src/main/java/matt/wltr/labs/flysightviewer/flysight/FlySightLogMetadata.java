@@ -2,6 +2,8 @@ package matt.wltr.labs.flysightviewer.flysight;
 
 import android.support.annotation.NonNull;
 
+import com.google.gson.annotations.Since;
+
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
@@ -15,19 +17,24 @@ public class FlySightLogMetadata implements Serializable {
 
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
+    @Since(1.0)
     private ZoneId zoneId;
 
+    @Since(1.0)
     private OffsetDateTime utcDate;
 
+    @Since(1.0)
     private LatLon latLon;
 
+    @Since(1.0)
     private String description;
 
+    @Since(1.0)
     private boolean deleted = false;
 
     static FlySightLogMetadata fromFlySightLog(@NonNull FlySightLog flySightLog) {
 
-        FlySightRecord firstRecord = flySightLog.getRecords().entrySet().iterator().next().getValue();
+        FlySightRecord firstRecord = flySightLog.getFirstRecord();
 
         FlySightLogMetadata flySightLogMetadata = new FlySightLogMetadata();
         flySightLogMetadata.utcDate = firstRecord.getDate();

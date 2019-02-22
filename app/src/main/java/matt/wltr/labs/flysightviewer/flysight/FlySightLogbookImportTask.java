@@ -40,7 +40,7 @@ public class FlySightLogbookImportTask extends AsyncTask<Uri, Integer, Void> {
             try {
                 FileInputStream inputStream = (FileInputStream) activity.getContentResolver().openInputStream(uri);
                 if (inputStream == null) {
-                    // skip, uri is not readable
+                    // skip, URI is not readable
                     continue;
                 }
                 FlySightLog flySightLog = FlySightLogParser.parse(inputStream, ParseMode.FIRST_DATA_LINE);
@@ -64,6 +64,11 @@ public class FlySightLogbookImportTask extends AsyncTask<Uri, Integer, Void> {
         return null;
     }
 
+    /**
+     * Flattens directory tree of Flysight's file structure and returns a list of all log files.
+     * @param parentDirectoryUri
+     * @return list of CSV file URIs
+     */
     private List<Uri> getCsvFileUris(@NonNull Uri parentDirectoryUri) {
 
         List<Uri> csvUris = new ArrayList<>();
