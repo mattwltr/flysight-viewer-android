@@ -3,7 +3,6 @@ package matt.wltr.labs.flysightviewer.flysight;
 import android.support.annotation.NonNull;
 
 import org.threeten.bp.OffsetDateTime;
-import org.threeten.bp.ZoneOffset;
 
 import java.io.Serializable;
 import java.util.Arrays;

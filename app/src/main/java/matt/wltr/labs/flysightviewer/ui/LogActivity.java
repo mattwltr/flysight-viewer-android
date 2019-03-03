@@ -10,6 +10,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,6 +31,8 @@ import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.scichart.extensions.builders.SciChartBuilder;
 
 import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,6 +67,8 @@ public class LogActivity extends AppCompatActivity {
 
     private static final String BUNDLE_KEY_FLY_SIGHT_LOG = "matt.wltr.labs.flysightviewer.linechart.ui.LogActivity.flySightLog";
     private static final String BUNDLE_KEY_VIEW_LOCKED = "matt.wltr.labs.flysightviewer.linechart.ui.LogActivity.viewLocked";
+
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @BindView(R.id.loader)
     RelativeLayout loader;
@@ -251,17 +256,17 @@ public class LogActivity extends AppCompatActivity {
         final View dialogView = getLayoutInflater().inflate(R.layout.view_description_dialog, null);
 
         final EditText descriptionView = dialogView.findViewById(R.id.log_description);
-        descriptionView.setText(flySightLogMetadata.getDescription());
+//        descriptionView.setText(flySightLogMetadata.getDescription());
 
         dialogBuilder.setView(dialogView);
         dialogBuilder.setTitle(getString(R.string.log_menu_description));
         dialogBuilder.setPositiveButton(
                 android.R.string.yes,
                 (dialog, whichButton) -> {
-                    flySightLogMetadata.setDescription(descriptionView.getText().toString());
+//                    flySightLogMetadata.setDescription(descriptionView.getText().toString());
                     try {
                         FlySightLogRepository.saveMetadata(this, flySightLogMetadata);
-                        setSubtitle(flySightLogMetadata.getDescription());
+                        setSubtitle(flySightLogMetadata.getTags());
                     } catch (IOException e) {
                         Log.e(LogActivity.class.getSimpleName(), "Could not save metadata", e);
                     }
@@ -357,14 +362,14 @@ public class LogActivity extends AppCompatActivity {
                         FlySightLogRepository.saveMetadata(this, flySightLogMetadata);
 
                         // update view title
-                        setTitle(flySightLogMetadata.getFormattedDateTime());
+                        setTitle(getFormattedDateTime());
 
                         // update x-axis of line chart
                         lineChartView.showDataWithZoneId(flySightLogMetadata.getZoneId());
 
                         // check if there're more log at this location
                         List<FlySightLogMetadata> flySightLogMetadataList =
-                                FlySightLogRepository.getFlySightLogMetadataByLatLonAndNoZoneId(this, flySightLogMetadata.getLatLon(), 20000);
+                                FlySightLogRepository.getFlySightLogMetadataByLatLonWithoutZoneId(this, flySightLogMetadata.getLatLon(), 20000);
                         if (!flySightLogMetadataList.isEmpty()) {
                             showTimezoneDialog(flySightLogMetadataList);
                         }
@@ -450,8 +455,15 @@ public class LogActivity extends AppCompatActivity {
                     @Override
                     public void onFinish() {
 
-                        setTitle(flySightLogMetadata.getFormattedDateTime());
-                        setSubtitle(flySightLogMetadata.getDescription());
+                        flySightLogMetadata.setOpened(true);
+                        try {
+                            FlySightLogRepository.saveMetadata(LogActivity.this, flySightLogMetadata);
+                        } catch (IOException e) {
+                            Log.e(LogActivity.class.getSimpleName(), "Could not save metadata", e);
+                        }
+
+                        setTitle(getFormattedDateTime());
+                        setSubtitle(flySightLogMetadata.getTags());
 
                         logMenu.findItem(R.id.log_menu_zoom_out).setVisible(true);
                         logMenu.findItem(R.id.log_menu_description).setVisible(true);
@@ -493,9 +505,18 @@ public class LogActivity extends AppCompatActivity {
                 });
     }
 
-    private void setSubtitle(String text) {
-        if (getSupportActionBar() != null && text != null && !text.trim().isEmpty()) {
-            getSupportActionBar().setSubtitle(text);
+    private void setSubtitle(List<String> tags) {
+        if (getSupportActionBar() != null && tags != null && !tags.isEmpty()) {
+            getSupportActionBar().setSubtitle(TextUtils.join(" · ", tags));
+        }
+    }
+
+    public String getFormattedDateTime() {
+        if (flySightLogMetadata.getZoneId() != null) {
+            ZonedDateTime zonedDateTime = flySightLogMetadata.getUtcDate().toZonedDateTime().withZoneSameInstant(flySightLogMetadata.getZoneId());
+            return zonedDateTime.format(DATE_TIME_FORMAT);
+        } else {
+            return DATE_TIME_FORMAT.format(flySightLogMetadata.getUtcDate()) + " UTC";
         }
     }
 }

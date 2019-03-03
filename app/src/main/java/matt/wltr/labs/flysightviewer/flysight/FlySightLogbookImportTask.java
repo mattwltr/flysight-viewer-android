@@ -36,6 +36,8 @@ public class FlySightLogbookImportTask extends AsyncTask<Uri, Integer, Void> {
 
         List<Uri> csvFileUris = getCsvFileUris(DocumentsContract.buildChildDocumentsUriUsingTree(uris[0], DocumentsContract.getTreeDocumentId(uris[0])));
 
+        long importedLogCount = FlySightLogRepository.count(activity);
+
         for (Uri uri : csvFileUris) {
             try {
                 FileInputStream inputStream = (FileInputStream) activity.getContentResolver().openInputStream(uri);
@@ -55,6 +57,14 @@ public class FlySightLogbookImportTask extends AsyncTask<Uri, Integer, Void> {
                 }
                 if (!FlySightLogRepository.metadataFileExists(activity, utcDateTime)) {
                     FlySightLogMetadata flySightLogMetadata = FlySightLogMetadata.fromFlySightLog(flySightLog);
+                    if (importedLogCount == 0) {
+                        flySightLogMetadata.setOpened(true);
+                    }
+                    List<FlySightLogMetadata> flySightLogMetadataByLatLonWithZoneId =
+                            FlySightLogRepository.getFlySightLogMetadataByLatLonWithZoneId(activity, flySightLogMetadata.getLatLon(), 20000);
+                    if (!flySightLogMetadataByLatLonWithZoneId.isEmpty()) {
+                        flySightLogMetadata.setZoneId(flySightLogMetadataByLatLonWithZoneId.get(0).getZoneId());
+                    }
                     FlySightLogRepository.saveMetadata(activity, flySightLogMetadata);
                 }
             } catch (Exception e) {
@@ -66,6 +76,7 @@ public class FlySightLogbookImportTask extends AsyncTask<Uri, Integer, Void> {
 
     /**
      * Flattens directory tree of Flysight's file structure and returns a list of all log files.
+     *
      * @param parentDirectoryUri
      * @return list of CSV file URIs
      */

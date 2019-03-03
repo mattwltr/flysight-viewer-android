@@ -9,7 +9,7 @@
         android:id="@+id/log_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
+        android:inputType="text"
         android:lines="3" />
 
 </LinearLayout>

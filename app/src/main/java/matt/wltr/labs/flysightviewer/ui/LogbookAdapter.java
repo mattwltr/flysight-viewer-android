@@ -2,8 +2,10 @@ package matt.wltr.labs.flysightviewer.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,8 +55,11 @@ public class LogbookAdapter extends ArrayAdapter<LogbookListEntry> {
             title += " UTC";
         }
         titleView.setText(title);
-        if (flySightLogMetadata.getDescription() != null && !flySightLogMetadata.getDescription().trim().isEmpty()) {
-            descriptionView.setText(flySightLogMetadata.getDescription());
+        if (!flySightLogMetadata.isOpened()) {
+            titleView.setTypeface(null, Typeface.BOLD);
+        }
+        if (flySightLogMetadata.getTags() != null && !flySightLogMetadata.getTags().isEmpty()) {
+            descriptionView.setText(TextUtils.join(" · ", flySightLogMetadata.getTags()));
             descriptionView.setVisibility(View.VISIBLE);
         }
 
