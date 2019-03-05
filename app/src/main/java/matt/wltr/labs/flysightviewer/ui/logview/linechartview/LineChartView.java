@@ -2,7 +2,7 @@ package matt.wltr.labs.flysightviewer.ui.logview.linechartview;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
 

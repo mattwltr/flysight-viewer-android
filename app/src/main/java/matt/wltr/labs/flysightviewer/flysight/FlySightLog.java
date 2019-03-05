@@ -1,6 +1,6 @@
 package matt.wltr.labs.flysightviewer.flysight;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.threeten.bp.OffsetDateTime;
 

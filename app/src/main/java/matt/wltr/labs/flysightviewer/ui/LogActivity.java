@@ -5,10 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NavUtils;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -27,6 +23,8 @@ import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.hootsuite.nachos.NachoTextView;
+import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.scichart.extensions.builders.SciChartBuilder;
 
@@ -39,9 +37,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TimeZone;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NavUtils;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import labs.wltr.matt.flysightviewer.R;
@@ -237,7 +241,7 @@ public class LogActivity extends AppCompatActivity {
                 lockView(logMenu.findItem(R.id.log_menu_chart_mode));
                 return true;
             case R.id.log_menu_description:
-                showDescriptionDialog();
+                showTagsDialog();
                 return true;
             case R.id.log_menu_timezone:
                 showTimezoneDialog();
@@ -250,20 +254,28 @@ public class LogActivity extends AppCompatActivity {
         }
     }
 
-    private void showDescriptionDialog() {
+    private void showTagsDialog() {
 
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         final View dialogView = getLayoutInflater().inflate(R.layout.view_description_dialog, null);
 
-        final EditText descriptionView = dialogView.findViewById(R.id.log_description);
-//        descriptionView.setText(flySightLogMetadata.getDescription());
+        List<String> existingTags = new ArrayList<>(FlySightLogRepository.getAllFlySightMetadataTags(LogActivity.this));
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(LogActivity.this, android.R.layout.simple_dropdown_item_1line, existingTags);
+        final NachoTextView tagsView = dialogView.findViewById(R.id.tags);
+        tagsView.addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_CURRENT_TOKEN);
+        tagsView.setAdapter(adapter);
+        tagsView.setText(flySightLogMetadata.getTags());
 
         dialogBuilder.setView(dialogView);
-        dialogBuilder.setTitle(getString(R.string.log_menu_description));
+        dialogBuilder.setTitle(getString(R.string.log_menu_tags));
         dialogBuilder.setPositiveButton(
                 android.R.string.yes,
                 (dialog, whichButton) -> {
-//                    flySightLogMetadata.setDescription(descriptionView.getText().toString());
+
+
+
+                    flySightLogMetadata.setTags(new ArrayList<>(new LinkedHashSet<>(tagsView.getChipAndTokenValues())));
                     try {
                         FlySightLogRepository.saveMetadata(this, flySightLogMetadata);
                         setSubtitle(flySightLogMetadata.getTags());

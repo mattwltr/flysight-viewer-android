@@ -1,6 +1,6 @@
 package matt.wltr.labs.flysightviewer.flysight;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.Since;
 
@@ -15,8 +15,6 @@ import java.util.List;
 public class FlySightLogMetadata implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    //    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Since(1.0)
     private ZoneId zoneId;
@@ -54,15 +52,6 @@ public class FlySightLogMetadata implements Serializable {
     public ZonedDateTime getZonedDateTime() {
         return zoneId != null ? utcDate.toZonedDateTime().withZoneSameInstant(zoneId) : utcDate.toZonedDateTime();
     }
-
-    //    public String getFormattedDateTime() {
-    //        if (zoneId != null) {
-    //            ZonedDateTime zonedDateTime = utcDate.toZonedDateTime().withZoneSameInstant(zoneId);
-    //            return zonedDateTime.format(DATE_TIME_FORMAT);
-    //        } else {
-    //            return DATE_TIME_FORMAT.format(utcDate) + " UTC";
-    //        }
-    //    }
 
     public ZoneId getZoneId() {
         return zoneId;

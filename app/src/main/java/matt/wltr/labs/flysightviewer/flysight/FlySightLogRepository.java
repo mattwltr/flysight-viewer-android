@@ -2,7 +2,6 @@ package matt.wltr.labs.flysightviewer.flysight;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -17,6 +16,7 @@ import org.threeten.bp.format.DateTimeFormatter;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -27,9 +27,13 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.GZIPOutputStream;
+
+import androidx.annotation.NonNull;
 
 public abstract class FlySightLogRepository {
 
@@ -64,6 +68,26 @@ public abstract class FlySightLogRepository {
                                         return null;
                                     }
                                     return ZoneId.of(jsonReader.nextString());
+                                }
+                            })
+                    .registerTypeAdapter(
+                            OffsetDateTime.class,
+                            new TypeAdapter<OffsetDateTime>() {
+                                @Override
+                                public void write(JsonWriter jsonWriter, OffsetDateTime value) throws IOException {
+                                    if (value != null) {
+                                        jsonWriter.value(value.toString());
+                                    } else {
+                                        jsonWriter.nullValue();
+                                    }
+                                }
+
+                                @Override
+                                public OffsetDateTime read(JsonReader jsonReader) throws IOException {
+                                    if (!jsonReader.hasNext()) {
+                                        return null;
+                                    }
+                                    return OffsetDateTime.parse(jsonReader.nextString());
                                 }
                             })
                     .create();
@@ -119,6 +143,7 @@ public abstract class FlySightLogRepository {
 
     /**
      * Copies the given {@code inputStream} to the given {@code outputStream}
+     *
      * @param inputStream
      * @param outputStream
      * @throws Exception
@@ -180,8 +205,7 @@ public abstract class FlySightLogRepository {
         List<FlySightLogMetadata> flySightLogMetadataList = new ArrayList<>();
         for (File metadataFile : getAllMetadataFiles(context)) {
             try {
-                JsonReader reader = new JsonReader(new FileReader(metadataFile));
-                FlySightLogMetadata flySightLogMetadata = GSON.fromJson(reader, FlySightLogMetadata.class);
+                FlySightLogMetadata flySightLogMetadata = getFlySightLogMetadata(metadataFile);
                 if (!flySightLogMetadata.isDeleted()) {
                     flySightLogMetadataList.add(flySightLogMetadata);
                 }
@@ -190,6 +214,11 @@ public abstract class FlySightLogRepository {
             }
         }
         return flySightLogMetadataList;
+    }
+
+    private static FlySightLogMetadata getFlySightLogMetadata(File metadataFile) throws FileNotFoundException {
+        JsonReader reader = new JsonReader(new FileReader(metadataFile));
+        return GSON.fromJson(reader, FlySightLogMetadata.class);
     }
 
     @NonNull
@@ -241,6 +270,21 @@ public abstract class FlySightLogRepository {
         }
         Collections.sort(flySightLogMetadataList, (first, second) -> second.getUtcDate().compareTo(first.getUtcDate()));
         return flySightLogMetadataList;
+    }
+
+    public static Set<String> getAllFlySightMetadataTags(@NonNull Context context) {
+        Set<String> tags = new HashSet<>();
+        for (File metadataFile : getAllMetadataFiles(context)) {
+            try {
+                FlySightLogMetadata flySightLogMetadata = getFlySightLogMetadata(metadataFile);
+                if (!flySightLogMetadata.isDeleted()) {
+                    tags.addAll(flySightLogMetadata.getTags());
+                }
+            } catch (Exception e) {
+                Log.e(FlySightLogMetadata.class.getSimpleName(), String.format("Could not read FlySightLogMetadata from file %s", metadataFile.toString()), e);
+            }
+        }
+        return tags;
     }
 
     public static void saveMetadata(@NonNull Context context, @NonNull FlySightLogMetadata flySightLogMetadata) throws IOException {

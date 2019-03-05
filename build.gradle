@@ -1,5 +1,4 @@
 buildscript {
-    
     repositories {
         jcenter()
         maven { url 'https://www.myget.org/F/abtsoftware/maven' }

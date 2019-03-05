@@ -1,6 +1,6 @@
 package matt.wltr.labs.flysightviewer.ui.logview.linechartview;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import matt.wltr.labs.flysightviewer.flysight.FlySightRecord;
 

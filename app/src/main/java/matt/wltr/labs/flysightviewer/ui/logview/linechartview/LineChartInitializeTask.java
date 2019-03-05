@@ -1,7 +1,7 @@
 package matt.wltr.labs.flysightviewer.ui.logview.linechartview;
 
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.OffsetDateTime;

@@ -1,7 +1,7 @@
 package matt.wltr.labs.flysightviewer.ui.logview.topview;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -18,7 +18,6 @@ import com.scichart.extensions.builders.SciChartBuilder;
 import org.threeten.bp.OffsetDateTime;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 
 import labs.wltr.matt.flysightviewer.R;

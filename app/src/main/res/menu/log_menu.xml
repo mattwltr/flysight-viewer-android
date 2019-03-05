@@ -26,7 +26,7 @@
     <item
         android:id="@+id/log_menu_description"
         android:icon="@drawable/ic_description"
-        android:title="@string/log_menu_description"
+        android:title="@string/log_menu_tags"
         android:visible="false"
         app:showAsAction="never" />
 

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,12 +13,9 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.threeten.bp.ZoneId;
 import org.threeten.bp.format.DateTimeFormatter;
-import org.threeten.bp.format.TextStyle;
 
 import java.util.List;
-import java.util.Locale;
 
 import labs.wltr.matt.flysightviewer.R;
 import matt.wltr.labs.flysightviewer.flysight.FlySightLogMetadata;
